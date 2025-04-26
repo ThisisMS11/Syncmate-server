@@ -76,7 +76,7 @@ public class SecurityConfig {
 
     /*
      * Authentication manager bean
-     * Required for programmatic authentication (e.g., in /generateToken)
+     * Required for programmatic authentication (e.g., in /generateAccessToken)
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

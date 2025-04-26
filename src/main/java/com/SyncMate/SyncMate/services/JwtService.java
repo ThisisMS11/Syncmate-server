@@ -1,11 +1,9 @@
 package com.SyncMate.SyncMate.services;
-import com.SyncMate.SyncMate.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,17 +17,32 @@ import java.util.Map;
 public class JwtService {
     public static final String SECRET = "5367566859703373367639792F423F452848284D6251655468576D5A71347437";
 
-    public String generateToken(String email) { // Use email as username
+    public String generateAccessToken(String email) { // Use email as username
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, email);
+        return createAccessToken(claims, email);
     }
 
-    private String createToken(Map<String, Object> claims, String email) {
+    public String generateRefreshToken(String email) { // Use email as username
+        Map<String, Object> claims = new HashMap<>();
+        return createRefreshToken(claims, email);
+    }
+
+    private String createAccessToken(Map<String, Object> claims, String email) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String createRefreshToken(Map<String, Object> claims,String email) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -64,7 +77,12 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateAccessToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public Boolean validateRefreshToken(String token, UserDetails userDetails){
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

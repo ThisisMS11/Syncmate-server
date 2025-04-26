@@ -1,5 +1,4 @@
 package com.SyncMate.SyncMate.filter;
-import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
+            if (jwtService.validateAccessToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

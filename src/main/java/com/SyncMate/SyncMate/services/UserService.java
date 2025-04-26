@@ -28,8 +28,8 @@ public class UserService {
             throw UserException.userExists(user.getEmail());
         }
         User newUser = new User();
-
         log.info("Encoding the user password");
+        newUser.setUsername(user.getUsername());
         newUser.setEmail(user.getEmail());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser.setRoles(Arrays.asList("USER"));
