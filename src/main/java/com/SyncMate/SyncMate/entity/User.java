@@ -31,10 +31,13 @@ public class User {
 
     private List<String> roles;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserConfig userConfig;
+
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime created_at;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private LocalDateTime updated_at;
 }

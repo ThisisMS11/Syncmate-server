@@ -1,24 +1,26 @@
 package com.SyncMate.SyncMate.controller;
-
 import com.SyncMate.SyncMate.dto.LoginRequest;
 import com.SyncMate.SyncMate.dto.RegisterRequest;
 import com.SyncMate.SyncMate.dto.TokenResponse;
 import com.SyncMate.SyncMate.services.JwtService;
+import com.SyncMate.SyncMate.services.UserConfigService;
 import com.SyncMate.SyncMate.services.UserDetailsServiceImpl;
 import com.SyncMate.SyncMate.services.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
-
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/public")
 public class PublicController {
@@ -35,6 +37,9 @@ public class PublicController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UserConfigService userConfigService;
+
     @PostMapping("/register")
     private ResponseEntity<String> registerUser(@RequestBody RegisterRequest user){
         userService.saveNewUser(user);
@@ -50,10 +55,12 @@ public class PublicController {
                 new UsernamePasswordAuthenticationToken(email,password)
         );
         if (authentication.isAuthenticated()) {
+            // manually updating the security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             String newAccessToken = jwtService.generateAccessToken(email);
             String newRefreshToken = jwtService.generateRefreshToken(email);
-
             TokenResponse tokenResponse = new TokenResponse(newAccessToken,newRefreshToken);
+            userConfigService.saveUserConfig(tokenResponse,email);
             return ResponseEntity.ok(tokenResponse);
         } else {
             throw new UsernameNotFoundException("Invalid user request!");
@@ -67,8 +74,11 @@ public class PublicController {
 
         if (email != null && jwtService.validateRefreshToken(refreshToken,userDetailsService.loadUserByUsername(email) )) {
             String newAccessToken = jwtService.generateAccessToken(email);
-            return ResponseEntity.ok(new TokenResponse(newAccessToken, null));
+            TokenResponse tokenResponse = new TokenResponse(newAccessToken,null);
+            userConfigService.saveUserConfig(tokenResponse,email);
+            return ResponseEntity.ok(tokenResponse);
         }
+        log.error("User not found, Throwing UsernameNotFoundException Exception");
         throw new UsernameNotFoundException("Invalid refresh token!");
     }
 }

@@ -7,6 +7,7 @@ import com.SyncMate.SyncMate.exception.UserException;
 import com.SyncMate.SyncMate.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,4 +36,15 @@ public class UserService {
         newUser.setRoles(Arrays.asList("USER"));
         userRepository.save(newUser);
     }
+
+    public User getUserByEmail(String email) {
+        log.info("Finding user with email : {}", email);
+        User user =  userRepository.findByEmail(email);
+        if(user == null){
+            log.error("User with email {} not found", email);
+            throw new UsernameNotFoundException("User not found");
+        }
+        return user;
+    }
+
 }
