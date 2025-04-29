@@ -1,6 +1,7 @@
 package com.SyncMate.SyncMate.handlers;
 import com.SyncMate.SyncMate.exception.ApiError;
 import com.SyncMate.SyncMate.exception.ApplicationException;
+import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.exception.UserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,12 @@ public class GlobalExceptionHandler {
         return switch(errorCode) {
             case UserException.USER_EXISTS -> HttpStatus.CONFLICT;
             case UserException.INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
+            case CommonExceptions.RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case CommonExceptions.INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
+            case CommonExceptions.UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+            case CommonExceptions.FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case CommonExceptions.OPERATION_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case CommonExceptions.INPUT_FIELD_VALUE_ALREADY_EXISTS -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

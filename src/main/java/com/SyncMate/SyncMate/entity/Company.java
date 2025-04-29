@@ -1,5 +1,4 @@
 package com.SyncMate.SyncMate.entity;
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,39 +10,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name="users")
+@Table(name = "companies")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
-
+public class Company {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String username;
+    private String name;
 
-    @Column(nullable = false, unique=true)
-    private String email;
+    private String domain;
 
-    @Column(nullable = false)
-    private String password;
+    private String logo;
 
-    private List<String> roles;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private UserConfig userConfig;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Contact> contacts;
 
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 }
