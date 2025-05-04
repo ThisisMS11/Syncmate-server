@@ -27,7 +27,7 @@ public class UserConfig {
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonBackReference("user-userConfig")
     private User user;
 
     @CreationTimestamp

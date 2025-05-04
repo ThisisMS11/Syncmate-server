@@ -39,11 +39,11 @@ public class Email {
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    @JsonBackReference
+    @JsonBackReference("user-emails")
     private User user;
 
     @ManyToMany
-    @JsonManagedReference
+    @JsonManagedReference("email-files")
     @JoinTable(
             name = "email_attachments",
             joinColumns = @JoinColumn(name = "email_id"),

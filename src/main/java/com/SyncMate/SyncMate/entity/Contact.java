@@ -55,7 +55,7 @@ public class Contact {
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    @JsonBackReference
+    @JsonBackReference("user-contacts")
     private User user;
 
     @ManyToOne

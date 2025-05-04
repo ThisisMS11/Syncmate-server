@@ -14,7 +14,6 @@ public class UserException extends  ApplicationException{
     }
 
     public static UserException invalidCredentials() {
-        return new UserException(INVALID_CREDENTIALS,
-                "Invalid username or password");
+        return new UserException(INVALID_CREDENTIALS,"Invalid username or password");
     }
 }

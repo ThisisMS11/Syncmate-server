@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name="files")
+@Table(name = "files")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,20 +22,30 @@ public class File {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fileName;
+    // Original file name uploaded by the user
+    private String originalFilename;
 
-    private String fileUrl;
+    // Unique name saved in GCS (e.g., UUID_originalFilename)
+    private String gcsFilename;
+
+    private String publicUrl;
+
+    private String contentType;
+
+    private Long size;
+
+    private String bucketName;
 
     @Enumerated(EnumType.STRING)
     private FileType fileType = FileType.UNKNOWN;
 
     @ManyToMany(mappedBy = "attachmentsList")
-    @JsonBackReference
+    @JsonBackReference("email-files")
     private List<Email> emails;
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    @JsonBackReference
+    @JsonBackReference("user-files")
     private User user;
 
     @CreationTimestamp

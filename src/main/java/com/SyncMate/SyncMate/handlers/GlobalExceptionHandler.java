@@ -1,22 +1,19 @@
 package com.SyncMate.SyncMate.handlers;
-import com.SyncMate.SyncMate.exception.ApiError;
-import com.SyncMate.SyncMate.exception.ApplicationException;
-import com.SyncMate.SyncMate.exception.CommonExceptions;
-import com.SyncMate.SyncMate.exception.UserException;
+import com.SyncMate.SyncMate.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
-    public ResponseEntity<ApiError> handleUserException(
-            UserException ex) {
+    public ResponseEntity<ApiError> handleUserException(UserException ex) {
 
         if (ex.getErrorCode().equals(UserException.USER_EXISTS)) {
             log.warn("Registration attempt failed: {}", ex.getMessage());
@@ -29,12 +26,21 @@ public class GlobalExceptionHandler {
 
     // Generic handler for other application exceptions
     @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<ApiError> handleApplicationException(
-            ApplicationException ex) {
+    public ResponseEntity<ApiError> handleApplicationException(ApplicationException ex) {
 
         log.error("Application exception: {}", ex.getMessage());
 
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+        HttpStatus status =  mapErrorCodeToStatus(ex.getErrorCode());;
+        ApiError error = buildApiError(status, ex.getMessage(), ex.getErrorCode());
+
+        return new ResponseEntity<>(error, status);
+    }
+
+    @ExceptionHandler(GcsException.class)
+    public ResponseEntity<ApiError> handleGcsException(ApplicationException ex) {
+        log.error("Application exception: {}", ex.getMessage());
+
+        HttpStatus status =  mapErrorCodeToStatus(ex.getErrorCode());;
         ApiError error = buildApiError(status, ex.getMessage(), ex.getErrorCode());
 
         return new ResponseEntity<>(error, status);

@@ -34,3 +34,5 @@ build/
 *.yml
 *.log
 logs
+
+storage-service-account.json
