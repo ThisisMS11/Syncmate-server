@@ -105,9 +105,9 @@ public class ContactService {
     }
 
     private void updateContact(ContactDto contactInfo) {
-        // Logic for updating an existing contact
         log.info("Updating contact with ID: {}", contactInfo.getId());
 
+        // Fetch existing contact from DB
         Contact existingContact = contactRepository.findById(contactInfo.getId())
                 .orElseThrow(() -> {
                     log.error("Contact with ID {} not found", contactInfo.getId());
@@ -115,15 +115,15 @@ public class ContactService {
                 });
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Finding user with name : {} ", authentication.getName());
         User user = userService.getUserByEmail(authentication.getName());
 
-        if(!existingContact.getUser().getId().equals(user.getId())){
-            log.error("Forbidden Access for contact : {}", contactInfo.getId());
+        // Check for forbidden access (ensure contact belongs to the user)
+        if (!existingContact.getUser().getId().equals(user.getId())) {
+            log.error("Forbidden Access for contact: {}", contactInfo.getId());
             throw CommonExceptions.forbiddenAccess();
         }
 
-        // Update the fields from the DTO
+        // Update fields from the DTO
         existingContact.setFirstName(contactInfo.getFirstName());
         existingContact.setLastName(contactInfo.getLastName());
         existingContact.setGender(contactInfo.getGender());
@@ -135,7 +135,7 @@ public class ContactService {
         existingContact.setExperience(contactInfo.getExperience());
         existingContact.setValid(contactInfo.getValid());
 
-        // Only update company if the companyId has changed
+        // Only update company if it has changed
         if (existingContact.getCompany() == null || !existingContact.getCompany().getId().equals(contactInfo.getCompanyId())) {
             log.info("Company ID has changed for contact with ID: {}. Updating company.", contactInfo.getId());
 
@@ -150,6 +150,14 @@ public class ContactService {
 
         contactRepository.save(existingContact);
         log.info("Successfully updated contact with ID: {}", existingContact.getId());
+    }
+
+    public Contact findContactById(Long id){
+        return contactRepository.findById(id)
+        .orElseThrow(() -> {
+            log.error("Contact with ID {} not found", id);
+            return CommonExceptions.resourceNotFound(String.valueOf(id));
+        });
     }
 }
 

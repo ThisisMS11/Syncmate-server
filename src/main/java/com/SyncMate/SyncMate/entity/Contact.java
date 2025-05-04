@@ -1,8 +1,8 @@
 package com.SyncMate.SyncMate.entity;
-
 import com.SyncMate.SyncMate.enums.Gender;
 import com.SyncMate.SyncMate.enums.PositionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "contacts")
@@ -61,6 +62,10 @@ public class Contact {
     @JoinColumn(name = "companyId")
     @JsonBackReference
     private Company company;
+
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Email> emails;
 
     @CreationTimestamp
     @Column(updatable = false)
