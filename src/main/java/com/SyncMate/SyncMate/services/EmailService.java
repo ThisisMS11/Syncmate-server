@@ -1,7 +1,8 @@
 package com.SyncMate.SyncMate.services;
+
 import com.SyncMate.SyncMate.dto.email.EmailDto;
 import com.SyncMate.SyncMate.entity.Contact;
-import com.SyncMate.SyncMate.entity.Email;
+import com.SyncMate.SyncMate.entity.EmailRecord;
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.EmailRepository;
@@ -55,47 +56,47 @@ public class EmailService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByEmail(authentication.getName());
 
-        Email email = new Email();
-        email.setSubject(emailDto.getSubject());
-        email.setBody(emailDto.getBody());
+        EmailRecord emailRecord = new EmailRecord();
+        emailRecord.setSubject(emailDto.getSubject());
+        emailRecord.setBody(emailDto.getBody());
         Contact contact = contactService.findContactById(emailDto.getContactId());
-        email.setContact(contact);
-        email.setScheduledTime(emailDto.getScheduledTime());
-        email.setUser(user);
+        emailRecord.setContact(contact);
+        emailRecord.setScheduledTime(emailDto.getScheduledTime());
+        emailRecord.setUser(user);
 
         try {
-            emailRepository.save(email);
-            log.info("Successfully created email with ID: {}", email.getId());
+            emailRepository.save(emailRecord);
+            log.info("Successfully created emailRecord with ID: {}", emailRecord.getId());
         } catch (DataAccessException ex) {
-            log.error("Database error while saving email: {}", ex.getMessage(), ex);
-            throw CommonExceptions.operationFailed("Saving email to database");
+            log.error("Database error while saving emailRecord: {}", ex.getMessage(), ex);
+            throw CommonExceptions.operationFailed("Saving emailRecord to database");
         }
     }
 
     private void updateEmail(EmailDto emailDto) {
-        Email existingEmail = emailRepository.findById(emailDto.getId())
+        EmailRecord existingEmailRecord = emailRepository.findById(emailDto.getId())
                 .orElseThrow(() -> {
-                    log.error("Email Entry with ID {} not found", emailDto.getId());
+                    log.error("EmailRecord Entry with ID {} not found", emailDto.getId());
                     return CommonExceptions.resourceNotFound(String.valueOf(emailDto.getId()));
                 });
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByEmail(authentication.getName());
 
-        if (!existingEmail.getUser().getId().equals(user.getId())) {
+        if (!existingEmailRecord.getUser().getId().equals(user.getId())) {
             log.error("Forbidden Access for email: {}", emailDto.getId());
             throw CommonExceptions.forbiddenAccess();
         }
 
-        existingEmail.setSubject(emailDto.getSubject());
-        existingEmail.setBody(emailDto.getBody());
+        existingEmailRecord.setSubject(emailDto.getSubject());
+        existingEmailRecord.setBody(emailDto.getBody());
         Contact contact = contactService.findContactById(emailDto.getContactId());
-        existingEmail.setContact(contact);
-        existingEmail.setScheduledTime(emailDto.getScheduledTime());
+        existingEmailRecord.setContact(contact);
+        existingEmailRecord.setScheduledTime(emailDto.getScheduledTime());
 
         try {
-            emailRepository.save(existingEmail);
-            log.info("Successfully updated email with ID: {}", existingEmail.getId());
+            emailRepository.save(existingEmailRecord);
+            log.info("Successfully updated email with ID: {}", existingEmailRecord.getId());
         } catch (DataAccessException ex) {
             log.error("Database error while updating email: {}", ex.getMessage(), ex);
             throw CommonExceptions.operationFailed("Updating email in database");

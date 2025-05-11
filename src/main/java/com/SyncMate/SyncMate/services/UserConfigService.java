@@ -6,9 +6,6 @@ import com.SyncMate.SyncMate.entity.UserConfig;
 import com.SyncMate.SyncMate.repository.UserConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -18,9 +15,9 @@ public class UserConfigService {
     @Autowired
     private UserConfigRepository userConfigRepository;
     @Autowired
-    private  UserService userService;
+    private UserService userService;
 
-    public void saveUserConfig(TokenResponse tokenResponse, String email){
+    public void saveUserConfig(TokenResponse tokenResponse, String email) {
 
         User user = userService.getUserByEmail(email);
 

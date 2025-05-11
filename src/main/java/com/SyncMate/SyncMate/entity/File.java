@@ -3,9 +3,7 @@ package com.SyncMate.SyncMate.entity;
 import com.SyncMate.SyncMate.enums.FileType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,15 +12,16 @@ import java.util.List;
 
 @Entity
 @Table(name = "files")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(of = {"id", "originalFilename", "gcsFilename"})
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Original file name uploaded by the user
     private String originalFilename;
 
     // Unique name saved in GCS (e.g., UUID_originalFilename)
@@ -39,11 +38,11 @@ public class File {
     @Enumerated(EnumType.STRING)
     private FileType fileType = FileType.UNKNOWN;
 
-    @ManyToMany(mappedBy = "attachmentsList")
+    @ManyToMany(mappedBy = "attachmentsList", fetch = FetchType.LAZY)
     @JsonBackReference("email-files")
-    private List<Email> emails;
+    private List<EmailRecord> emailRecords;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     @JsonBackReference("user-files")
     private User user;
@@ -54,4 +53,20 @@ public class File {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "id=" + id +
+                ", originalFilename='" + originalFilename + '\'' +
+                ", gcsFilename='" + gcsFilename + '\'' +
+                ", publicUrl='" + publicUrl + '\'' +
+                ", contentType='" + contentType + '\'' +
+                ", size=" + size +
+                ", bucketName='" + bucketName + '\'' +
+                ", fileType=" + fileType +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

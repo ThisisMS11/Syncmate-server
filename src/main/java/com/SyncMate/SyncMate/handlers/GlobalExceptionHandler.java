@@ -1,13 +1,16 @@
 package com.SyncMate.SyncMate.handlers;
+
 import com.SyncMate.SyncMate.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
@@ -30,7 +33,8 @@ public class GlobalExceptionHandler {
 
         log.error("Application exception: {}", ex.getMessage());
 
-        HttpStatus status =  mapErrorCodeToStatus(ex.getErrorCode());;
+        HttpStatus status = mapErrorCodeToStatus(ex.getErrorCode());
+        ;
         ApiError error = buildApiError(status, ex.getMessage(), ex.getErrorCode());
 
         return new ResponseEntity<>(error, status);
@@ -40,14 +44,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleGcsException(ApplicationException ex) {
         log.error("Application exception: {}", ex.getMessage());
 
-        HttpStatus status =  mapErrorCodeToStatus(ex.getErrorCode());;
+        HttpStatus status = mapErrorCodeToStatus(ex.getErrorCode());
+        ;
         ApiError error = buildApiError(status, ex.getMessage(), ex.getErrorCode());
 
         return new ResponseEntity<>(error, status);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
     private HttpStatus mapErrorCodeToStatus(String errorCode) {
-        return switch(errorCode) {
+        return switch (errorCode) {
             case UserException.USER_EXISTS -> HttpStatus.CONFLICT;
             case UserException.INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
             case CommonExceptions.RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;

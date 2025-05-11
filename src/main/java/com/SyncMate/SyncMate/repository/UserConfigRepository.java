@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.repository;
+
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.entity.UserConfig;
 import org.springframework.data.jpa.repository.JpaRepository;

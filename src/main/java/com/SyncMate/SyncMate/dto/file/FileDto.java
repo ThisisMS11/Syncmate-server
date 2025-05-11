@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.dto.file;
+
 import com.SyncMate.SyncMate.enums.FileType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

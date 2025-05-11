@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.filter;
+
 import com.SyncMate.SyncMate.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

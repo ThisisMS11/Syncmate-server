@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.dto;
+
 import com.SyncMate.SyncMate.enums.Gender;
 import com.SyncMate.SyncMate.enums.PositionType;
 import jakarta.validation.constraints.Email;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserContactsResponse{
+public class UserContactsResponse {
     private Long id;
 
     @NotBlank(message = "First Name is required")
@@ -28,7 +29,7 @@ public class UserContactsResponse{
 
     private String linkedIn;
 
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "EmailRecord is required")
     @Email(message = "Invalid email format")
     private String email;
 

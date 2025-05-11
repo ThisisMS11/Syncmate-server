@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.config;
+
 import com.SyncMate.SyncMate.filter.JwtAuthFilter;
 import com.SyncMate.SyncMate.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,24 +23,33 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    };
+    private final JwtAuthFilter jwtAuthFilter;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-    private final JwtAuthFilter jwtAuthFilter;
+    /*
+     * Main security configuration
+     * Defines endpoint access rules and JWT filter setup
+     */
 
     // Constructor injection for required dependencies
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    /*
-     * Main security configuration
-     * Defines endpoint access rules and JWT filter setup
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(request -> request
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/test/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)

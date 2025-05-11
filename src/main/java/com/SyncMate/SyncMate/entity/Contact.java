@@ -1,22 +1,24 @@
 package com.SyncMate.SyncMate.entity;
+
 import com.SyncMate.SyncMate.enums.Gender;
 import com.SyncMate.SyncMate.enums.PositionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "contacts")
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = {"id", "email", "mobile"})
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,10 +36,10 @@ public class Contact {
     @Column(nullable = false)
     private String mobile;
 
-    @Column(nullable = true, unique = false)
+    @Column(nullable = true)
     private String linkedIn;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
@@ -53,19 +55,19 @@ public class Contact {
     @Column(nullable = false)
     private Boolean valid = true;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     @JsonBackReference("user-contacts")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "companyId")
-    @JsonBackReference
+    @JsonBackReference("contact-company")
     private Company company;
 
-    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<Email> emails;
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("contact-emailRecords")
+    private List<EmailRecord> emailRecords;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -73,4 +75,23 @@ public class Contact {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", gender=" + gender +
+                ", mobile='" + mobile + '\'' +
+                ", linkedIn='" + linkedIn + '\'' +
+                ", email='" + email + '\'' +
+                ", position='" + position + '\'' +
+                ", positionType=" + positionType +
+                ", experience=" + experience +
+                ", valid=" + valid +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

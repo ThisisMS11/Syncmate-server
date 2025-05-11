@@ -1,22 +1,24 @@
 package com.SyncMate.SyncMate.entity;
+
 import com.SyncMate.SyncMate.enums.EmailStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "emails")
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Email {
+@EqualsAndHashCode(of = {"id"})
+public class EmailRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,17 +34,17 @@ public class Email {
     @Enumerated(EnumType.STRING)
     private EmailStatus status = EmailStatus.PENDING;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contactId")
     @JsonBackReference
     private Contact contact;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     @JsonBackReference("user-emails")
     private User user;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference("email-files")
     @JoinTable(
             name = "email_attachments",
@@ -57,4 +59,17 @@ public class Email {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        return "EmailRecord{" +
+                "id=" + id +
+                ", subject='" + subject + '\'' +
+                ", body='" + body + '\'' +
+                ", scheduledTime=" + scheduledTime +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

@@ -2,31 +2,29 @@ package com.SyncMate.SyncMate.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="userConfigs")
-@Data
+@Table(name = "userConfigs")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = {"id"})  // Only use id for equals/hashCode
 public class UserConfig {
+    @Column
+    String access_token;
+    @Column
+    String refresh_token;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column
-    String access_token;
-
-    @Column
-    String refresh_token;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     @JsonBackReference("user-userConfig")
     private User user;
 
@@ -36,4 +34,15 @@ public class UserConfig {
 
     @UpdateTimestamp
     private LocalDateTime updated_at;
+
+    @Override
+    public String toString() {
+        return "UserConfig{" +
+                "id=" + id +
+                ", access_token='" + access_token + '\'' +
+                ", refresh_token='" + refresh_token + '\'' +
+                ", created_at=" + created_at +
+                ", updated_at=" + updated_at +
+                '}';
+    }
 }

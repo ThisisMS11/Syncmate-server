@@ -26,19 +26,6 @@ public class CompanyService {
         // Validate the CompanyDto
         log.info("Starting to save company with ID: {}", companyDto.getId());
 
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-
-        var violations = validator.validate(companyDto);
-
-        if (!violations.isEmpty()) {
-            // Handle validation errors
-            for (var violation : violations) {
-                log.error("Validation error for field {}: {}", violation.getPropertyPath(), violation.getMessage());
-            }
-            throw new IllegalArgumentException("Validation failed");
-        }
-
         // If ID is null, create; otherwise, update
         if (companyDto.getId() == null) {
             log.info("Creating new company");
@@ -84,7 +71,7 @@ public class CompanyService {
         log.info("Successfully updated company with ID: {}", existingCompany.getId());
     }
 
-    public List<CompanyDto> getCompanies(){
+    public List<CompanyDto> getCompanies() {
         log.info("Finding out all the companies");
         List<CompanyDto> companies = companyRepository.findAll()
                 .stream()

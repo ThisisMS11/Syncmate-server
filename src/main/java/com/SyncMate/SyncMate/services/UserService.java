@@ -1,14 +1,14 @@
 package com.SyncMate.SyncMate.services;
 
-import com.SyncMate.SyncMate.dto.*;
-import com.SyncMate.SyncMate.entity.Contact;
+import com.SyncMate.SyncMate.dto.RegisterRequest;
+import com.SyncMate.SyncMate.dto.UserContactsResponse;
+import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
+import com.SyncMate.SyncMate.enums.Role;
 import com.SyncMate.SyncMate.exception.UserException;
 import com.SyncMate.SyncMate.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,13 +23,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
     UserRepository userRepository;
 
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public void saveNewUser(RegisterRequest user){
-        if(userRepository.findByEmail(user.getEmail()) != null) {
+    public void saveNewUser(RegisterRequest user) {
+        if (userRepository.findByEmail(user.getEmail()) != null) {
             log.error("User with the email already exists");
             throw UserException.userExists(user.getEmail());
         }
@@ -39,14 +38,14 @@ public class UserService {
         newUser.setUsername(user.getUsername());
         newUser.setEmail(user.getEmail());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        newUser.setRoles(Arrays.asList("USER"));
+        newUser.addRole(Role.USER);
         userRepository.save(newUser);
     }
 
     public User getUserByEmail(String email) {
         log.info("Finding user with email : {}", email);
-        User user =  userRepository.findByEmail(email);
-        if(user == null){
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
             log.error("User with email {} not found", email);
             throw new UsernameNotFoundException("User not found");
         }
@@ -78,5 +77,12 @@ public class UserService {
                 .collect(Collectors.toList());
 
         return contacts;
+    }
+
+    public List<File> getUserFiles() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = getUserByEmail(authentication.getName());
+        log.info("Fetching user files");
+        return user.getFiles();
     }
 }

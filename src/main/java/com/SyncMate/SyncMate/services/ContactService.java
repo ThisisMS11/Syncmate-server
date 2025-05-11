@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.services;
+
 import com.SyncMate.SyncMate.dto.ContactDto;
 import com.SyncMate.SyncMate.entity.Company;
 import com.SyncMate.SyncMate.entity.Contact;
@@ -6,10 +7,6 @@ import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.CompanyRepository;
 import com.SyncMate.SyncMate.repository.ContactRepository;
-import com.SyncMate.SyncMate.repository.UserRepository;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -34,18 +31,6 @@ public class ContactService {
         // Validate the ContactDto
         log.info("Starting to save contact with ID with mohit: {}", contactInfo.getId());
 
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-
-        var violations = validator.validate(contactInfo);
-        if (!violations.isEmpty()) {
-            // Handle validation errors
-            for (var violation : violations) {
-                log.error("Validation error for field {}: {}", violation.getPropertyPath(), violation.getMessage());
-            }
-            throw new IllegalArgumentException("Validation failed");
-        }
-
         // If ID is null, create; otherwise, update
         if (contactInfo.getId() == null) {
             log.info("Creating new contact");
@@ -67,7 +52,7 @@ public class ContactService {
         log.info("Checking unique email constraint");
         Contact contact = contactRepository.findByEmail(contactInfo.getEmail());
 
-        if(contact!=null){
+        if (contact != null) {
             System.out.println(contact);
             throw CommonExceptions.inputFieldValueAlreadyExists(contactInfo.getEmail());
         }
@@ -100,7 +85,7 @@ public class ContactService {
             log.info("Successfully created contact with ID something is there: {}", contact.getId());
         } catch (DataAccessException ex) {
             log.error("Database error while saving contact: {}", ex.getMessage(), ex);
-            throw  CommonExceptions.operationFailed("Saving contact into database");
+            throw CommonExceptions.operationFailed("Saving contact into database");
         }
     }
 
@@ -152,12 +137,38 @@ public class ContactService {
         log.info("Successfully updated contact with ID: {}", existingContact.getId());
     }
 
-    public Contact findContactById(Long id){
+    public Contact findContactById(Long id) {
         return contactRepository.findById(id)
-        .orElseThrow(() -> {
-            log.error("Contact with ID {} not found", id);
-            return CommonExceptions.resourceNotFound(String.valueOf(id));
-        });
+                .orElseThrow(() -> {
+                    log.error("Contact with ID {} not found", id);
+                    return CommonExceptions.resourceNotFound(String.valueOf(id));
+                });
+    }
+
+
+    public void deleteContact(Long id) {
+        log.info("Starting to delete contact with ID : {}", id);
+        Contact contact = findContactById(id);
+
+        if (contact == null) {
+            log.error("Contact with id not found : {}", id);
+            throw CommonExceptions.resourceNotFound(String.valueOf(id));
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByEmail(authentication.getName());
+
+        if (!contact.getUser().equals(user)) {
+            log.error("Not Authorized to delete contact with id : {}", id);
+            throw CommonExceptions.forbiddenAccess();
+        }
+
+        try {
+            log.info("Deleting contact with id: {}", id);
+            contactRepository.deleteById(id);
+        } catch (Exception e) {
+            log.error("Failed to delete contact with id: {}. Error: {}", id, e.getMessage());
+            throw CommonExceptions.operationFailed(e.getMessage());
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 package com.SyncMate.SyncMate.services;
-import java.io.IOException;
+
 import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.enums.FileType;
@@ -10,9 +10,12 @@ import com.google.cloud.storage.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Slf4j
@@ -28,19 +31,27 @@ public class FileService {
     @Autowired
     private FileRepository fileRepository;
 
+    @Autowired
+    private UserService userService;
+
     // Upload a file to GCS
     public File uploadFile(MultipartFile file, User user) {
         log.info("Received file upload request");
 
         if (file == null || file.isEmpty()) {
             log.warn("Uploaded file is null or empty");
-            throw new IllegalArgumentException("Uploaded file is empty or null");
+            throw CommonExceptions.invalidRequest("Uploaded file is empty or null");
         }
 
         String originalName = file.getOriginalFilename();
         if (originalName == null) {
             log.warn("Uploaded file has no original filename");
-            throw new IllegalArgumentException("File must have a valid name");
+            throw CommonExceptions.invalidRequest("File must have a valid name");
+        }
+
+        if (user == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            user = userService.getUserByEmail(authentication.getName());
         }
 
         String gcsFilename = UUID.randomUUID() + "_" + originalName;
@@ -63,17 +74,25 @@ public class FileService {
         String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, gcsFilename);
 
         // Build entity
-        File savedFile = new File();
-        savedFile.setOriginalFilename(originalName);
-        savedFile.setGcsFilename(gcsFilename);
-        savedFile.setPublicUrl(publicUrl);
-        savedFile.setContentType(file.getContentType());
-        savedFile.setSize(file.getSize());
-        savedFile.setBucketName(bucketName);
-        savedFile.setFileType(FileType.detectFromContentType(file.getContentType()));
-        savedFile.setUser(user);
+        try {
+            File savedFile = new File();
+            savedFile.setOriginalFilename(originalName);
+            savedFile.setGcsFilename(gcsFilename);
+            savedFile.setPublicUrl(publicUrl);
+            savedFile.setContentType(file.getContentType());
+            savedFile.setSize(file.getSize());
+            savedFile.setBucketName(bucketName);
+            savedFile.setFileType(FileType.detectFromContentType(file.getContentType()));
+            savedFile.setUser(user);
 
-        return fileRepository.save(savedFile);
+            log.info("Saving file into DB");
+            return fileRepository.save(savedFile);
+
+        } catch (Exception e) {
+            log.error("Error saving file into DB : {}", e.getMessage());
+            storage.delete(bucketName, gcsFilename);
+            throw CommonExceptions.operationFailed("Error saving file into DB");
+        }
     }
 
 
@@ -110,7 +129,7 @@ public class FileService {
 
 
     // Delete a file from GCS and database
-    public boolean deleteFile(Long fileId) {
+    public boolean deleteFile(Long fileId, User user) {
         log.info("Attempting to delete file with ID: {}", fileId);
 
         if (fileId == null) {
@@ -118,11 +137,21 @@ public class FileService {
             throw CommonExceptions.invalidRequest("File ID must not be null");
         }
 
+        if (user == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            user = userService.getUserByEmail(authentication.getName());
+        }
+
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> {
                     log.warn("No file found in DB with ID: {}", fileId);
                     return GcsException.fileNotFound("File ID: " + fileId);
                 });
+
+        if (!file.getUser().equals(user)) {
+            log.error("User is not authorized to delete the file");
+            throw CommonExceptions.forbiddenAccess();
+        }
 
         String gcsFilename = file.getGcsFilename();
         String bucket = file.getBucketName() != null ? file.getBucketName() : bucketName;

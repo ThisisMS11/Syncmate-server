@@ -43,7 +43,6 @@ public class ContactDto {
     @NotNull(message = "Experience is required")
     private Integer experience;
 
-    @NotNull(message = "Valid flag is required")
     private Boolean valid;
 
     @NotNull(message = "CompanyID is required")
