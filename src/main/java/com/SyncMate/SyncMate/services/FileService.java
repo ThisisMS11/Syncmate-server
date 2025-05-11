@@ -34,6 +34,29 @@ public class FileService {
     @Autowired
     private UserService userService;
 
+    public File getFileById(Long fileId){
+        log.info("Attempting to fetch file with ID: {}", fileId);
+
+        if (fileId == null) {
+            log.warn("Null fileId provided");
+            throw CommonExceptions.invalidRequest("File ID must not be null");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByEmail(authentication.getName());
+
+        File file = fileRepository.findById(fileId).orElseThrow(() -> {
+            log.warn("No file found in DB with ID: {}", fileId);
+            throw  CommonExceptions.resourceNotFound("File ID: " + fileId);
+        });
+
+        if(!file.getUser().equals(user)){
+            throw CommonExceptions.forbiddenAccess();
+        }
+
+        return file;
+    }
+
     // Upload a file to GCS
     public File uploadFile(MultipartFile file, User user) {
         log.info("Received file upload request");
@@ -108,7 +131,7 @@ public class FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> {
                     log.warn("No file found in DB with ID: {}", fileId);
-                    return CommonExceptions.resourceNotFound("File ID: " + fileId);
+                    throw CommonExceptions.resourceNotFound("File ID: " + fileId);
                 });
 
         String gcsFilename = file.getGcsFilename();
@@ -145,7 +168,7 @@ public class FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> {
                     log.warn("No file found in DB with ID: {}", fileId);
-                    return GcsException.fileNotFound("File ID: " + fileId);
+                    throw GcsException.fileNotFound("File ID: " + fileId);
                 });
 
         if (!file.getUser().equals(user)) {
@@ -175,5 +198,10 @@ public class FileService {
             log.error("Failed to delete file: {}", gcsFilename, e);
             throw GcsException.deleteFailed(gcsFilename);
         }
+    }
+
+    public boolean existsById(Long id){
+        log.info("Validating the existence of file with id : {}", id);
+        return fileRepository.existsById(id);
     }
 }

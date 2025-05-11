@@ -7,6 +7,7 @@ import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.CompanyRepository;
 import com.SyncMate.SyncMate.repository.ContactRepository;
+import com.SyncMate.SyncMate.repository.FileRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -145,6 +146,10 @@ public class ContactService {
                 });
     }
 
+    public boolean existsById(Long id){
+        log.info("Validating the existence of contact with id : {}", id);
+        return contactRepository.existsById(id);
+    }
 
     public void deleteContact(Long id) {
         log.info("Starting to delete contact with ID : {}", id);

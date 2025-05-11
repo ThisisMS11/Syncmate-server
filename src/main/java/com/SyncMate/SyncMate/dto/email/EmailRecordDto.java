@@ -2,17 +2,17 @@ package com.SyncMate.SyncMate.dto.email;
 
 import com.SyncMate.SyncMate.enums.EmailStatus;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailDto {
+public class EmailRecordDto {
     private Long id;
 
     @NotBlank(message = "Subject is required")
@@ -26,8 +26,8 @@ public class EmailDto {
 
     private EmailStatus status = EmailStatus.PENDING;
 
-    @NotNull(message = "Contact ID is required")
-    private Long contactId;
+    @NotEmpty(message = "Contact IDs is required")
+    private List<Long> contactIds;
 
     private List<Long> attachmentIds;
 }
