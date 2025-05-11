@@ -34,7 +34,7 @@ public class FileService {
     @Autowired
     private UserService userService;
 
-    public File getFileById(Long fileId){
+    public File getFileById(Long fileId) {
         log.info("Attempting to fetch file with ID: {}", fileId);
 
         if (fileId == null) {
@@ -47,10 +47,10 @@ public class FileService {
 
         File file = fileRepository.findById(fileId).orElseThrow(() -> {
             log.warn("No file found in DB with ID: {}", fileId);
-            throw  CommonExceptions.resourceNotFound("File ID: " + fileId);
+            throw CommonExceptions.resourceNotFound("File ID: " + fileId);
         });
 
-        if(!file.getUser().equals(user)){
+        if (!file.getUser().equals(user)) {
             throw CommonExceptions.forbiddenAccess();
         }
 
@@ -200,7 +200,7 @@ public class FileService {
         }
     }
 
-    public boolean existsById(Long id){
+    public boolean existsById(Long id) {
         log.info("Validating the existence of file with id : {}", id);
         return fileRepository.existsById(id);
     }

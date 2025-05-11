@@ -30,17 +30,18 @@ public class EmailRecordService {
     @Autowired
     private ContactService contactService;
 
-    public void saveEmailRecords(EmailRecordDto emailRecordDto) {
+    public List<EmailRecord> saveEmailRecords(EmailRecordDto emailRecordDto) {
         // Validate the EmailRecordDto
         log.info("Starting to save email with subject: {}", emailRecordDto.getSubject());
 
         if (emailRecordDto.getId() == null) {
             log.info("Creating new email");
-            createEmailsInBatch(emailRecordDto);
+            return createEmailsInBatch(emailRecordDto);
         }
+        return null;
     }
 
-    private void createEmailsInBatch(EmailRecordDto emailRecordDto) {
+    private List<EmailRecord> createEmailsInBatch(EmailRecordDto emailRecordDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByEmail(auth.getName());
 
@@ -77,41 +78,13 @@ public class EmailRecordService {
                 .map(contact -> buildEmailRecord(emailRecordDto, user, contact, attachments))
                 .toList();
 
-        emailRepository.saveAll(records);
+        List<EmailRecord> emailRecordList = emailRepository.saveAll(records);
         log.info("Saved {} email records", records.size());
+        return emailRecordList;
     }
-//    private void updateEmail(EmailRecordDto emailDto) {
-//        EmailRecord existingEmailRecord = emailRepository.findById(emailDto.getId())
-//                .orElseThrow(() -> {
-//                    log.error("EmailRecord Entry with ID {} not found", emailDto.getId());
-//                    return CommonExceptions.resourceNotFound(String.valueOf(emailDto.getId()));
-//                });
-//
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        User user = userService.getUserByEmail(authentication.getName());
-//
-//        if (!existingEmailRecord.getUser().getId().equals(user.getId())) {
-//            log.error("Forbidden Access for email: {}", emailDto.getId());
-//            throw CommonExceptions.forbiddenAccess();
-//        }
-//
-//        existingEmailRecord.setSubject(emailDto.getSubject());
-//        existingEmailRecord.setBody(emailDto.getBody());
-//        Contact contact = contactService.findContactById(emailDto.getContactId());
-//        existingEmailRecord.setContact(contact);
-//        existingEmailRecord.setScheduledTime(emailDto.getScheduledTime());
-//
-//        try {
-//            emailRepository.save(existingEmailRecord);
-//            log.info("Successfully updated email with ID: {}", existingEmailRecord.getId());
-//        } catch (DataAccessException ex) {
-//            log.error("Database error while updating email: {}", ex.getMessage(), ex);
-//            throw CommonExceptions.operationFailed("Updating email in database");
-//        }
-//    }
 
     private EmailRecord buildEmailRecord(EmailRecordDto dto, User user, Contact contact, List<File> attachments) {
-        log.info("Creating Email Record for contact : {} ",contact.getEmail());
+        log.info("Creating Email Record for contact : {} ", contact.getEmail());
         EmailRecord record = new EmailRecord();
         record.setSubject(dto.getSubject());
         record.setBody(dto.getBody());

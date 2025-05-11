@@ -4,9 +4,6 @@ import com.SyncMate.SyncMate.dto.CompanyDto;
 import com.SyncMate.SyncMate.entity.Company;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.CompanyRepository;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,21 +19,23 @@ public class CompanyService {
     @Autowired
     private CompanyRepository companyRepository;
 
-    public void saveCompany(CompanyDto companyDto) {
+    public Company saveCompany(CompanyDto companyDto) {
         // Validate the CompanyDto
         log.info("Starting to save company with ID: {}", companyDto.getId());
 
+        Company company;
         // If ID is null, create; otherwise, update
         if (companyDto.getId() == null) {
             log.info("Creating new company");
-            createCompany(companyDto);
+            company = createCompany(companyDto);
         } else {
             log.info("Updating existing company with ID: {}", companyDto.getId());
-            updateCompany(companyDto);
+            company = updateCompany(companyDto);
         }
+        return company;
     }
 
-    private void createCompany(CompanyDto companyDto) {
+    private Company createCompany(CompanyDto companyDto) {
         // Logic for creating a new company
         log.info("Creating a new company with name: {}", companyDto.getName());
 
@@ -49,9 +48,10 @@ public class CompanyService {
         // Save to repository
         companyRepository.save(company);
         log.info("Successfully created company with ID: {}", company.getId());
+        return company;
     }
 
-    private void updateCompany(CompanyDto companyDto) {
+    private Company updateCompany(CompanyDto companyDto) {
         // Logic for updating an existing company
         log.info("Updating company with ID: {}", companyDto.getId());
 
@@ -69,6 +69,7 @@ public class CompanyService {
         // Save updated company
         companyRepository.save(existingCompany);
         log.info("Successfully updated company with ID: {}", existingCompany.getId());
+        return existingCompany;
     }
 
     public List<CompanyDto> getCompanies() {

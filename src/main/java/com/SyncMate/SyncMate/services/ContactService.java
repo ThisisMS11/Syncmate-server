@@ -7,7 +7,6 @@ import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.CompanyRepository;
 import com.SyncMate.SyncMate.repository.ContactRepository;
-import com.SyncMate.SyncMate.repository.FileRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -28,21 +27,21 @@ public class ContactService {
     @Autowired
     private UserService userService;
 
-    public void saveContact(ContactDto contactInfo) {
+    public Contact saveContact(ContactDto contactInfo) {
         // Validate the ContactDto
         log.info("Starting to save contact with ID with mohit: {}", contactInfo.getId());
 
         // If ID is null, create; otherwise, update
         if (contactInfo.getId() == null) {
             log.info("Creating new contact");
-            createContact(contactInfo);
+            return createContact(contactInfo);
         } else {
             log.info("Updating existing contact with ID: {}", contactInfo.getId());
-            updateContact(contactInfo);
+            return updateContact(contactInfo);
         }
     }
 
-    private void createContact(ContactDto contactInfo) {
+    private Contact createContact(ContactDto contactInfo) {
         // Logic for creating a new contact
         log.info("Creating a new contact for email: {}", contactInfo.getEmail());
 
@@ -84,13 +83,14 @@ public class ContactService {
         try {
             contactRepository.save(contact);
             log.info("Successfully created contact with ID something is there: {}", contact.getId());
+            return contact;
         } catch (DataAccessException ex) {
             log.error("Database error while saving contact: {}", ex.getMessage(), ex);
             throw CommonExceptions.operationFailed("Saving contact into database");
         }
     }
 
-    private void updateContact(ContactDto contactInfo) {
+    private Contact updateContact(ContactDto contactInfo) {
         log.info("Updating contact with ID: {}", contactInfo.getId());
 
         // Fetch existing contact from DB
@@ -136,6 +136,7 @@ public class ContactService {
 
         contactRepository.save(existingContact);
         log.info("Successfully updated contact with ID: {}", existingContact.getId());
+        return existingContact;
     }
 
     public Contact findContactById(Long id) {
@@ -146,7 +147,7 @@ public class ContactService {
                 });
     }
 
-    public boolean existsById(Long id){
+    public boolean existsById(Long id) {
         log.info("Validating the existence of contact with id : {}", id);
         return contactRepository.existsById(id);
     }

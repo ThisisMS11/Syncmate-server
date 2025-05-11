@@ -3,6 +3,8 @@ package com.SyncMate.SyncMate.controller;
 import com.SyncMate.SyncMate.dto.LoginRequest;
 import com.SyncMate.SyncMate.dto.RegisterRequest;
 import com.SyncMate.SyncMate.dto.TokenResponse;
+import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
+import com.SyncMate.SyncMate.dto.responses.authentication.AuthResponse;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.services.JwtService;
 import com.SyncMate.SyncMate.services.UserConfigService;
@@ -51,24 +53,25 @@ public class PublicController {
 
     @Operation(summary = "Register User", description = "Register a new user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully deleted the file", content = @Content(mediaType = "text/plain")),
+            @ApiResponse(responseCode = "200", description = "Successfully deleted the file", content = @Content(schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "409", description = "User Already Exists"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/register")
-    private ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest user) {
+    public ResponseEntity<MakeResponseDto<?>> registerUser(@Valid @RequestBody RegisterRequest user) {
         userService.saveNewUser(user);
-        return ResponseEntity.ok("User registered successfully");
+        MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", null);
+        return ResponseEntity.ok(finalResponse);
     }
 
     @Operation(summary = "Login User", description = "Login a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully Logged in the user",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TokenResponse.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AuthResponse.class)))),
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> authenticateAndGetToken(@Valid @RequestBody LoginRequest authRequest) {
+    public ResponseEntity<MakeResponseDto<?>> authenticateAndGetToken(@Valid @RequestBody LoginRequest authRequest) {
         String email = authRequest.getEmail();
         String password = authRequest.getPassword();
         Authentication authentication = authenticationManager.authenticate(
@@ -81,7 +84,8 @@ public class PublicController {
             String newRefreshToken = jwtService.generateRefreshToken(email);
             TokenResponse tokenResponse = new TokenResponse(newAccessToken, newRefreshToken);
             userConfigService.saveUserConfig(tokenResponse, email);
-            return ResponseEntity.ok(tokenResponse);
+            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", tokenResponse);
+            return ResponseEntity.ok(finalResponse);
         } else {
             throw CommonExceptions.invalidRequest("Invalid user request!");
         }
@@ -90,11 +94,11 @@ public class PublicController {
     @Operation(summary = "Regenerate Access Token", description = "Regenerate the access token using refresh token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully regenerated the access token",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TokenResponse.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AuthResponse.class)))),
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/refresh-token")
-    public ResponseEntity<TokenResponse> refreshToken(@RequestBody Map<String, String> refreshTokenRequest) {
+    public ResponseEntity<MakeResponseDto<?>> refreshToken(@RequestBody Map<String, String> refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.get("refresh_token");
         String email = jwtService.extractUsername(refreshToken);
 
@@ -102,7 +106,8 @@ public class PublicController {
             String newAccessToken = jwtService.generateAccessToken(email);
             TokenResponse tokenResponse = new TokenResponse(newAccessToken, null);
             userConfigService.saveUserConfig(tokenResponse, email);
-            return ResponseEntity.ok(tokenResponse);
+            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", tokenResponse);
+            return ResponseEntity.ok(finalResponse);
         }
 
         log.error("User not found, Throwing UsernameNotFoundException Exception");
