@@ -33,7 +33,7 @@ public class Contact {
     @Column(nullable = false)
     private Gender gender;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String mobile;
 
     @Column(nullable = true)

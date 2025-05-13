@@ -1,6 +1,6 @@
 package com.SyncMate.SyncMate.controller;
 
-import com.SyncMate.SyncMate.dto.email.EmailRecordDto;
+import com.SyncMate.SyncMate.dto.email.EmailRecordRequestDto;
 import com.SyncMate.SyncMate.dto.responses.emailRecords.EmailRecordListResponse;
 import com.SyncMate.SyncMate.entity.EmailRecord;
 import com.SyncMate.SyncMate.services.EmailRecordService;
@@ -35,8 +35,8 @@ public class EmailRecordController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error"),
     })
     @PostMapping
-    public ResponseEntity<EmailRecordListResponse> saveEmailRecords(@Valid @RequestBody EmailRecordDto emailRecordDto) {
-        List<EmailRecord> emailRecordList = emailRecordService.saveEmailRecords(emailRecordDto);
+    public ResponseEntity<EmailRecordListResponse> saveEmailRecords(@Valid @RequestBody EmailRecordRequestDto emailRecordRequestDto) {
+        List<EmailRecord> emailRecordList = emailRecordService.saveEmailRecords(emailRecordRequestDto);
         EmailRecordListResponse emailRecordListResponse = new EmailRecordListResponse(true, "Created email records successfully", emailRecordList);
         return ResponseEntity.ok(emailRecordListResponse);
     }

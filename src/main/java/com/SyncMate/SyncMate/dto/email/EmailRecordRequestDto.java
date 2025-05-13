@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailRecordDto {
+public class EmailRecordRequestDto {
     private Long id;
 
     @NotBlank(message = "Subject is required")
