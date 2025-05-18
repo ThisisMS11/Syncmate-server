@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 
 @SpringBootApplication
-@EnableTransactionManagement
 @EnableScheduling
 public class SyncMateApplication {
 
@@ -18,9 +17,9 @@ public class SyncMateApplication {
         SpringApplication.run(SyncMateApplication.class, args);
     }
 
-    @Bean
-    public AbstractPlatformTransactionManager PlatformTransactionManager (MongoDatabaseFactory dbFactory){
-        return new MongoTransactionManager(dbFactory);
-    }
+//    @Bean
+//    public AbstractPlatformTransactionManager PlatformTransactionManager (MongoDatabaseFactory dbFactory){
+//        return new MongoTransactionManager(dbFactory);
+//    }
 
 }

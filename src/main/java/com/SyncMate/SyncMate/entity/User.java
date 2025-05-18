@@ -54,6 +54,10 @@ public class User {
     @JsonManagedReference("user-files")
     private List<File> files;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference("user-api-keys")
+    private List<APIkey> apiKeys;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime created_at;

@@ -24,8 +24,7 @@ public class EmailScheduler {
     @Autowired
     private EmailService emailService;
 
-    @Transactional
-    @Scheduled(cron = "0 * * * * *")
+//    @Scheduled(cron = "0 * * * * *")
     public void SendScheduledEmails(){
         log.info("Starting send email scheduler...");
 
