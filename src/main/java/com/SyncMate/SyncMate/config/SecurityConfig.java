@@ -1,5 +1,6 @@
 package com.SyncMate.SyncMate.config;
 
+import com.SyncMate.SyncMate.filter.APIKeyAuthFilter;
 import com.SyncMate.SyncMate.filter.JwtAuthFilter;
 import com.SyncMate.SyncMate.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,13 @@ public class SecurityConfig {
             "/webjars/**"
     };
     private final JwtAuthFilter jwtAuthFilter;
+    private final APIKeyAuthFilter apiKeyAuthFilter;
+
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     /*
      * Main security configuration
@@ -40,13 +46,15 @@ public class SecurityConfig {
      */
 
     // Constructor injection for required dependencies
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, APIKeyAuthFilter apiKeyAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.apiKeyAuthFilter = apiKeyAuthFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(request -> request
+        return http.exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .authorizeHttpRequests(request -> request
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/test/**").permitAll()
@@ -58,6 +66,7 @@ public class SecurityConfig {
                 // Set custom authentication provider
                 .authenticationProvider(authenticationProvider())
                 // Add JWT filter before Spring Security's default filter
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

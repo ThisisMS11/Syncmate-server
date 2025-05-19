@@ -89,6 +89,24 @@ public class APIKeyService {
         log.info("API key with ID {} successfully deleted.", apiKeyId);
     }
 
+    public boolean validateAPIKey(String apiKey) {
+        if (apiKey == null || apiKey.isEmpty()) {
+            return false;
+        }
+        APIkey apiKeyEntity = apiKeyRepository.findByApiKeyHash(apiKey);
+        if (apiKeyEntity == null) {
+            log.error("API Key is not valid");
+            return false;
+        }
+
+        long currentTimestamp = System.currentTimeMillis();
+        if (apiKeyEntity.getExpiryTimestamp() < currentTimestamp) {
+            log.error("API Key is expired");
+            return false;
+        }
+        return true;
+    }
+
 
     private String createRandomAPIKey(User user, ExpiryBucket expiryBucket, long expiryMillis) {
         String rawKey = user.getId() + ":" + expiryMillis + ":" + UUID.randomUUID();
@@ -106,5 +124,6 @@ public class APIKeyService {
             throw CommonExceptions.operationFailed("Hashing error: " + e.getMessage());
         }
     }
+
 
 }

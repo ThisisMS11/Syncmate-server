@@ -1,7 +1,9 @@
 package com.SyncMate.SyncMate.filter;
 
+import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
-import com.SyncMate.SyncMate.services.JwtService;
+import com.SyncMate.SyncMate.repository.APIKeyRepository;
+import com.SyncMate.SyncMate.services.APIKeyService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,43 +11,49 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class APIKeyAuthFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
-    private final JwtService jwtService;
+    private final APIKeyRepository apiKeyRepository;
+    private final APIKeyService apiKeyService;
 
     @Autowired
-    public JwtAuthFilter(UserDetailsService userDetailsService, JwtService jwtService) {
-        this.userDetailsService = userDetailsService;
-        this.jwtService = jwtService;
+    APIKeyAuthFilter(APIKeyRepository apiKeyRepository, APIKeyService apiKeyService){
+        this.apiKeyRepository = apiKeyRepository;
+        this.apiKeyService = apiKeyService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
+        String apiKeyHeader = request.getHeader("x-api-key");
 
         try {
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
-                username = jwtService.extractUsername(token);
-            }
+            if (apiKeyHeader != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtService.validateAccessToken(token, userDetails)) {
+                if (apiKeyService.validateAPIKey(apiKeyHeader)) {
+                    User user = apiKeyRepository.findUserWithApiKey(apiKeyHeader).getUser();
+
+                    List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                            .map(role -> new SimpleGrantedAuthority(role.name()))
+                            .toList();
+
+                    UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                            user.getEmail(),
+                            "",
+                            authorities
+                    );
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -55,10 +63,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.error("Authentication failed: {}", e.getMessage());
-            throw CommonExceptions.unauthorizedAccess();
+            log.error("API Key authentication failed: {}", e.getMessage());
         }
-
         filterChain.doFilter(request, response);
     }
 }
