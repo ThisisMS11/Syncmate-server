@@ -68,7 +68,7 @@ public class ContactService {
         contact.setPosition(contactInfo.getPosition());
         contact.setPositionType(contactInfo.getPositionType());
         contact.setExperience(contactInfo.getExperience());
-        contact.setValid(contactInfo.getValid());
+        contact.setValid(true);
         contact.setUser(user);
 
         Company company = companyRepository.findById(contactInfo.getCompanyId())

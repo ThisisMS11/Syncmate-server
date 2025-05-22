@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,29 +69,48 @@ public class PublicController {
     @Operation(summary = "Login User", description = "Login a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully Logged in the user",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AuthResponse.class)))),
+                    content = @Content(schema = @Schema(implementation = MakeResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/login")
-    public ResponseEntity<MakeResponseDto<?>> authenticateAndGetToken(@Valid @RequestBody LoginRequest authRequest) {
+    public ResponseEntity<MakeResponseDto<?>> authenticateAndGetToken(
+            @Valid @RequestBody LoginRequest authRequest,
+            HttpServletResponse response) {
+
         String email = authRequest.getEmail();
         String password = authRequest.getPassword();
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
+
         if (authentication.isAuthenticated()) {
             // manually updating the security context
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
             String newAccessToken = jwtService.generateAccessToken(email);
             String newRefreshToken = jwtService.generateRefreshToken(email);
+
+            // Create secure HTTP-only cookies for tokens
+            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, 15 * 60); // 15 minutes
+            Cookie refreshTokenCookie = createSecureCookie("refresh_token", newRefreshToken, 7 * 24 * 60 * 60); // 7 days
+
+            // Add cookies to response
+            response.addCookie(accessTokenCookie);
+            response.addCookie(refreshTokenCookie);
+
+            // Save token configuration (you might want to modify this based on your needs)
             TokenResponse tokenResponse = new TokenResponse(newAccessToken, newRefreshToken);
             userConfigService.saveUserConfig(tokenResponse, email);
-            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", tokenResponse);
+
+            // Return success response without tokens in body
+            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User logged in successfully", null);
             return ResponseEntity.ok(finalResponse);
         } else {
             throw CommonExceptions.invalidRequest("Invalid user request!");
         }
     }
+
 
     @Operation(summary = "Regenerate Access Token", description = "Regenerate the access token using refresh token")
     @ApiResponses(value = {
@@ -112,5 +133,16 @@ public class PublicController {
 
         log.error("User not found, Throwing UsernameNotFoundException Exception");
         throw CommonExceptions.invalidRequest("Invalid refresh token!");
+    }
+
+
+    private Cookie createSecureCookie(String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(true);           // Prevents XSS attacks
+        cookie.setSecure(true);             // Only send over HTTPS (set to false for local development)
+        cookie.setPath("/");                // Available for entire application
+        cookie.setMaxAge(maxAge);           // Set expiration time
+        cookie.setAttribute("SameSite", "Strict"); // CSRF protection
+        return cookie;
     }
 }

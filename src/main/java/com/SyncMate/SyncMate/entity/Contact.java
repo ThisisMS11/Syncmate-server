@@ -52,7 +52,7 @@ public class Contact {
     @Column(nullable = false)
     private Integer experience;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean valid = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

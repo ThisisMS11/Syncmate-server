@@ -21,8 +21,6 @@ public class CompanyService {
 
     public Company saveCompany(CompanyDto companyDto) {
         // Validate the CompanyDto
-        log.info("Starting to save company with ID: {}", companyDto.getId());
-
         Company company;
         // If ID is null, create; otherwise, update
         if (companyDto.getId() == null) {
