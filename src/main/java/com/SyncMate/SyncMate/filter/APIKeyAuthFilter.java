@@ -1,7 +1,6 @@
 package com.SyncMate.SyncMate.filter;
 
 import com.SyncMate.SyncMate.entity.User;
-import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.APIKeyRepository;
 import com.SyncMate.SyncMate.services.APIKeyService;
 import jakarta.servlet.FilterChain;
@@ -29,7 +28,7 @@ public class APIKeyAuthFilter extends OncePerRequestFilter {
     private final APIKeyService apiKeyService;
 
     @Autowired
-    APIKeyAuthFilter(APIKeyRepository apiKeyRepository, APIKeyService apiKeyService){
+    APIKeyAuthFilter(APIKeyRepository apiKeyRepository, APIKeyService apiKeyService) {
         this.apiKeyRepository = apiKeyRepository;
         this.apiKeyService = apiKeyService;
     }

@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.controller;
+
 import com.SyncMate.SyncMate.dto.APIKey.APIKeyRequestDto;
 import com.SyncMate.SyncMate.dto.APIKey.APIKeyResponseDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;

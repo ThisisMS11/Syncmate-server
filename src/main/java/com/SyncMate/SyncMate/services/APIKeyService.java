@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -29,12 +30,12 @@ public class APIKeyService {
     private UtilService utilService;
 
     @Autowired
-    private  UserService userService;
+    private UserService userService;
 
     @Autowired
     private ModelMapper modelMapper;
 
-    public APIKeyResponseDto createAPIKey(APIKeyRequestDto apiKeyRequestDto){
+    public APIKeyResponseDto createAPIKey(APIKeyRequestDto apiKeyRequestDto) {
         log.info("Starting to create API key...");
 
         ExpiryBucket expiryBucket = apiKeyRequestDto.getExpiryBucket();
@@ -65,7 +66,7 @@ public class APIKeyService {
 
             log.info("Saving API key to database...");
             APIkey savedKey = apiKeyRepository.save(apiKey);
-            return modelMapper.map(savedKey,APIKeyResponseDto.class);
+            return modelMapper.map(savedKey, APIKeyResponseDto.class);
         } catch (Exception e) {
             log.error("Error while saving API key: {}", e.getMessage(), e);
             throw CommonExceptions.operationFailed("Saving API key failed: " + e.getMessage());

@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.controller;
+
 import com.SyncMate.SyncMate.dto.CompanyDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
 import com.SyncMate.SyncMate.dto.responses.company.CompanyListResponse;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 

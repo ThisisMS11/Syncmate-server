@@ -3,16 +3,12 @@ package com.SyncMate.SyncMate.scheduler;
 import com.SyncMate.SyncMate.entity.EmailRecord;
 import com.SyncMate.SyncMate.enums.EmailStatus;
 import com.SyncMate.SyncMate.repository.EmailRecordRepository;
-import com.SyncMate.SyncMate.services.EmailRecordService;
 import com.SyncMate.SyncMate.services.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -24,20 +20,20 @@ public class EmailScheduler {
     @Autowired
     private EmailService emailService;
 
-//    @Scheduled(cron = "0 * * * * *")
-    public void SendScheduledEmails(){
+    //    @Scheduled(cron = "0 * * * * *")
+    public void SendScheduledEmails() {
         log.info("Starting send email scheduler...");
 
         List<EmailRecord> emailRecordList = emailRecordRepository.findAllWithContact();
 
-        if(emailRecordList.isEmpty()){
+        if (emailRecordList.isEmpty()) {
             log.info("No Email records found");
-            return ;
+            return;
         }
 
         List<EmailRecord> pendingEmailRecordList = emailRecordList.stream().filter((emailRecord ->
                 EmailStatus.PENDING.equals(emailRecord.getStatus())
-                && emailRecord.getScheduledTime() <= System.currentTimeMillis()
+                        && emailRecord.getScheduledTime() <= System.currentTimeMillis()
         )).toList();
 
         if (pendingEmailRecordList.isEmpty()) {
