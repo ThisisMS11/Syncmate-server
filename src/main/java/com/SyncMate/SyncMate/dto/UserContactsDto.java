@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserContactsResponse {
+public class UserContactsDto {
     private Long id;
 
     @NotBlank(message = "First Name is required")

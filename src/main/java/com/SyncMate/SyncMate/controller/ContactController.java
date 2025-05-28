@@ -1,7 +1,8 @@
 package com.SyncMate.SyncMate.controller;
 
 import com.SyncMate.SyncMate.dto.ContactDto;
-import com.SyncMate.SyncMate.dto.UserContactsResponse;
+import com.SyncMate.SyncMate.dto.UserContactsDto;
+import com.SyncMate.SyncMate.dto.responses.contact.UserContactsResponse;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
 import com.SyncMate.SyncMate.dto.responses.contact.ContactResponse;
 import com.SyncMate.SyncMate.entity.Contact;
@@ -16,7 +17,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,8 +88,9 @@ public class ContactController {
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema()))
     })
     @GetMapping("/user-contacts")
-    public ResponseEntity<List<UserContactsResponse>> getUserContacts() {
-        List<UserContactsResponse> contacts = userService.getUserContacts();
-        return new ResponseEntity<>(contacts, HttpStatus.OK);
+    public ResponseEntity<MakeResponseDto<List<UserContactsDto>>> getUserContacts() {
+        List<UserContactsDto> contacts = userService.getUserContacts();
+        MakeResponseDto<List<UserContactsDto>> finalResponse = new MakeResponseDto<>(true, "User Contacts fetched successfully", contacts);
+        return ResponseEntity.ok(finalResponse);
     }
 }

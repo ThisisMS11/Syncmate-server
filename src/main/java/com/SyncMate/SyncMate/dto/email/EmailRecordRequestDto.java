@@ -31,4 +31,15 @@ public class EmailRecordRequestDto {
     private List<Long> contactIds;
 
     private List<Long> attachmentIds;
+
+    private AdditionalData additionalData;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdditionalData {
+        private String internshipLink;
+        private String resumeLink;
+        private String coverLetterLink;
+    }
 }

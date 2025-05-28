@@ -3,8 +3,12 @@ package com.SyncMate.SyncMate.controller;
 import com.SyncMate.SyncMate.dto.LoginRequest;
 import com.SyncMate.SyncMate.dto.RegisterRequest;
 import com.SyncMate.SyncMate.dto.TokenResponse;
+import com.SyncMate.SyncMate.dto.UserinfoDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
-import com.SyncMate.SyncMate.dto.responses.authentication.AuthResponse;
+import com.SyncMate.SyncMate.dto.responses.authentication.LoginResponse;
+import com.SyncMate.SyncMate.dto.responses.user.UserInfoResponse;
+import com.SyncMate.SyncMate.entity.User;
+import com.SyncMate.SyncMate.enums.Role;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.services.JwtService;
 import com.SyncMate.SyncMate.services.UserConfigService;
@@ -31,6 +35,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -55,7 +61,7 @@ public class PublicController {
 
     @Operation(summary = "Register User", description = "Register a new user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully deleted the file", content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully deleted the file", content = @Content(schema = @Schema(implementation = LoginResponse.class))),
             @ApiResponse(responseCode = "409", description = "User Already Exists"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
@@ -69,7 +75,7 @@ public class PublicController {
     @Operation(summary = "Login User", description = "Login a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully Logged in the user",
-                    content = @Content(schema = @Schema(implementation = MakeResponseDto.class))),
+                    content = @Content(schema = @Schema(implementation = UserInfoResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/login")
@@ -92,7 +98,7 @@ public class PublicController {
             String newRefreshToken = jwtService.generateRefreshToken(email);
 
             // Create secure HTTP-only cookies for tokens
-            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, 15 * 60); // 15 minutes
+            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, 24 * 60 * 60); // 15 minutes
             Cookie refreshTokenCookie = createSecureCookie("refresh_token", newRefreshToken, 7 * 24 * 60 * 60); // 7 days
 
             // Add cookies to response
@@ -103,8 +109,13 @@ public class PublicController {
             TokenResponse tokenResponse = new TokenResponse(newAccessToken, newRefreshToken);
             userConfigService.saveUserConfig(tokenResponse, email);
 
+            User user = userService.getUserByEmail(email);
+
+            List<Role> roleList = new ArrayList<>(user.getRoles());
+            UserinfoDto userinfoDto = new UserinfoDto(user.getId(), user.getUsername(), user.getEmail(), roleList);
+
             // Return success response without tokens in body
-            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User logged in successfully", null);
+            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User logged in successfully", userinfoDto);
             return ResponseEntity.ok(finalResponse);
         } else {
             throw CommonExceptions.invalidRequest("Invalid user request!");
@@ -115,7 +126,7 @@ public class PublicController {
     @Operation(summary = "Regenerate Access Token", description = "Regenerate the access token using refresh token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully regenerated the access token",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AuthResponse.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = LoginResponse.class)))),
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/refresh-token")

@@ -1,10 +1,12 @@
 package com.SyncMate.SyncMate.services;
 
+import com.SyncMate.SyncMate.constants.Placeholders;
 import com.SyncMate.SyncMate.dto.email.EmailRecordRequestDto;
 import com.SyncMate.SyncMate.entity.Contact;
 import com.SyncMate.SyncMate.entity.EmailRecord;
 import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
+import com.SyncMate.SyncMate.enums.Gender;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.EmailRecordRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,6 @@ public class EmailRecordService {
     private ContactService contactService;
 
     public List<EmailRecord> saveEmailRecords(EmailRecordRequestDto emailRecordDto) {
-        // Validate the EmailRecordRequestDto
         log.info("Starting to save email with subject: {}", emailRecordDto.getSubject());
 
         if (emailRecordDto.getId() == null) {
@@ -78,16 +79,22 @@ public class EmailRecordService {
                 .map(contact -> buildEmailRecord(emailRecordRequestDto, user, contact, attachments))
                 .toList();
 
-        List<EmailRecord> emailRecordList = emailRecordRepository.saveAll(records);
-        log.info("Saved {} email records", records.size());
-        return emailRecordList;
+        try{
+            List<EmailRecord> emailRecordList = emailRecordRepository.saveAll(records);
+            log.info("Saved {} email records", records.size());
+            return emailRecordList;
+        } catch (Exception e) {
+            throw CommonExceptions.operationFailed("Saving Email Records Failed" + e.getMessage());
+        }
     }
 
     private EmailRecord buildEmailRecord(EmailRecordRequestDto dto, User user, Contact contact, List<File> attachments) {
         log.info("Creating Email Record for contact : {} ", contact.getEmail());
         EmailRecord record = new EmailRecord();
-        record.setSubject(dto.getSubject());
-        record.setBody(dto.getBody());
+        String modifiedSubject = injectValuesIntoPlaceholders(dto.getSubject(),contact, dto.getAdditionalData());
+        record.setSubject(modifiedSubject);
+        String modifiedBody = injectValuesIntoPlaceholders(dto.getBody(), contact, dto.getAdditionalData());
+        record.setBody(modifiedBody);
         record.setScheduledTime(dto.getScheduledTime());
         record.setUser(user);
         record.setContact(contact);
@@ -100,4 +107,31 @@ public class EmailRecordService {
         User user = userService.getUserByEmail(auth.getName());
         return user.getEmailRecords();
     }
+
+    private String injectValuesIntoPlaceholders(String body, Contact contact, EmailRecordRequestDto.AdditionalData additionalData) {
+        if (body == null) return "";
+
+        String genderPrefix = switch (contact.getGender()) {
+            case MALE -> "Mr.";
+            case FEMALE -> "Ms.";
+            default -> "";
+        };
+
+        return body
+                .replace(Placeholders.CONTACT_FIRST_NAME, contact.getFirstName())
+                .replace(Placeholders.CONTACT_LAST_NAME, contact.getLastName())
+                .replace(Placeholders.CONTACT_POSITION, contact.getPosition())
+                .replace(Placeholders.CONTACT_COMPANY, contact.getCompany() != null ? contact.getCompany().getName() : "")
+                .replace(Placeholders.CONTACT_EMAIL, contact.getEmail())
+                .replace(Placeholders.CONTACT_MOBILE, contact.getMobile() != null ? contact.getMobile() : "")
+                .replace(Placeholders.CONTACT_LINKEDIN, contact.getLinkedIn() != null ? contact.getLinkedIn() : "")
+                .replace(Placeholders.CONTACT_GENDER, genderPrefix)
+                .replace(Placeholders.CONTACT_EXPERIENCE, contact.getExperience() != null ? contact.getExperience().toString() : "")
+                .replace(Placeholders.CONTACT_POSITION_TYPE, contact.getPositionType() != null ? contact.getPositionType().toString() : "")
+                .replace(Placeholders.INTERNSHIP_LINK, additionalData != null && additionalData.getInternshipLink() != null ? additionalData.getInternshipLink() : "")
+                .replace(Placeholders.RESUME_LINK, additionalData != null && additionalData.getResumeLink() != null ? additionalData.getResumeLink() : "")
+                .replace(Placeholders.COVER_LETTER_LINK, additionalData != null && additionalData.getCoverLetterLink() != null ? additionalData.getCoverLetterLink() : "");
+    }
+
+
 }
