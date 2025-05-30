@@ -1,4 +1,5 @@
 package com.SyncMate.SyncMate.controller;
+
 import com.SyncMate.SyncMate.dto.UserinfoDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
 import com.SyncMate.SyncMate.dto.responses.user.UserInfoResponse;
@@ -38,13 +39,13 @@ public class UserController {
     })
     @GetMapping
     public ResponseEntity<MakeResponseDto<?>> getUserInfo() {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            User user = userService.getUserByEmail(authentication.getName());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByEmail(authentication.getName());
 
-            List<Role> roleList = new ArrayList<>(user.getRoles());
-            UserinfoDto userinfoDto = new UserinfoDto(user.getId(),user.getUsername(),user.getEmail(),roleList);
-            // Return success response without tokens in body
-            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User logged in successfully", userinfoDto);
-            return ResponseEntity.ok(finalResponse);
+        List<Role> roleList = new ArrayList<>(user.getRoles());
+        UserinfoDto userinfoDto = new UserinfoDto(user.getId(), user.getUsername(), user.getEmail(), roleList);
+        // Return success response without tokens in body
+        MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User logged in successfully", userinfoDto);
+        return ResponseEntity.ok(finalResponse);
     }
 }

@@ -6,7 +6,6 @@ import com.SyncMate.SyncMate.entity.Contact;
 import com.SyncMate.SyncMate.entity.EmailRecord;
 import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
-import com.SyncMate.SyncMate.enums.Gender;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.EmailRecordRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +78,7 @@ public class EmailRecordService {
                 .map(contact -> buildEmailRecord(emailRecordRequestDto, user, contact, attachments))
                 .toList();
 
-        try{
+        try {
             List<EmailRecord> emailRecordList = emailRecordRepository.saveAll(records);
             log.info("Saved {} email records", records.size());
             return emailRecordList;
@@ -91,7 +90,7 @@ public class EmailRecordService {
     private EmailRecord buildEmailRecord(EmailRecordRequestDto dto, User user, Contact contact, List<File> attachments) {
         log.info("Creating Email Record for contact : {} ", contact.getEmail());
         EmailRecord record = new EmailRecord();
-        String modifiedSubject = injectValuesIntoPlaceholders(dto.getSubject(),contact, dto.getAdditionalData());
+        String modifiedSubject = injectValuesIntoPlaceholders(dto.getSubject(), contact, dto.getAdditionalData());
         record.setSubject(modifiedSubject);
         String modifiedBody = injectValuesIntoPlaceholders(dto.getBody(), contact, dto.getAdditionalData());
         record.setBody(modifiedBody);

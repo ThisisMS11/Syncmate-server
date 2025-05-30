@@ -2,9 +2,9 @@ package com.SyncMate.SyncMate.controller;
 
 import com.SyncMate.SyncMate.dto.ContactDto;
 import com.SyncMate.SyncMate.dto.UserContactsDto;
-import com.SyncMate.SyncMate.dto.responses.contact.UserContactsResponse;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
 import com.SyncMate.SyncMate.dto.responses.contact.ContactResponse;
+import com.SyncMate.SyncMate.dto.responses.contact.UserContactsResponse;
 import com.SyncMate.SyncMate.entity.Contact;
 import com.SyncMate.SyncMate.services.ContactService;
 import com.SyncMate.SyncMate.services.UserService;

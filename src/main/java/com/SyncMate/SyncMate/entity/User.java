@@ -58,6 +58,10 @@ public class User {
     @JsonManagedReference("user-api-keys")
     private List<APIkey> apiKeys;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference("user-emails-templates")
+    private List<EmailTemplate> emailTemplates;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime created_at;
