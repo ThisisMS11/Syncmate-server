@@ -36,5 +36,7 @@ build/
 logs
 
 storage-service-account.json
+# GCP credentials
+storage-service-account*.json
 
 temp
