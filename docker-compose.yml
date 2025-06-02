@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: catoff
       POSTGRES_PASSWORD: catoff
     ports:
-      - "5432:5431"
+      - "5436:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +31,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       DB_HOST: postgres
-      DB_PORT: 5431
+      DB_PORT: 5432
       DB_NAME: syncmate
       DB_USER: catoff
       DB_PASSWORD: catoff
