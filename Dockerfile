@@ -18,4 +18,4 @@ RUN chmod +x app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "--add-opens=java.base/java.io=ALL-UNNAMED", "--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "-Dspring.profiles.active=dev", "-jar", "app.jar"]
+ENTRYPOINT ["java", "--add-opens=java.base/java.io=ALL-UNNAMED", "--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
