@@ -15,7 +15,7 @@ import java.io.InputStream;
 @Configuration
 public class StorageConfig {
 
-    @Value("${gcp.storage.credentials.location}")
+    @Value("${gcp.storage.credentials.location:}")
     private String credentialsPath;
 
     @Bean
@@ -29,7 +29,13 @@ public class StorageConfig {
             credentialsStream = new FileInputStream(credentialsPath);
         }
 
-        GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
+        GoogleCredentials credentials;
+        if(!credentialsPath.isEmpty()){
+            credentials = GoogleCredentials.fromStream(credentialsStream);
+        }else{
+            credentials = GoogleCredentials.getApplicationDefault();
+        }
+
         return StorageOptions.newBuilder()
                 .setCredentials(credentials)
                 .build()
