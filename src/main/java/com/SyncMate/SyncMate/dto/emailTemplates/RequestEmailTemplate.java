@@ -16,10 +16,10 @@ public class RequestEmailTemplate {
     private String name;
 
     @NotBlank(message = "Subject is required")
-    @Size(min = 1, max = 10000, message = "Subject must be between 1 and 10000 characters")
+    @Size(min = 1, max = 50000, message = "Subject must be between 1 and 10000 characters")
     private String subject;
 
     @NotBlank(message = "Body is required")
-    @Size(min = 1, max = 100, message = "Body must be between 1 and 10000 characters")
+    @Size(min = 1, max = 50000, message = "Body must be between 1 and 10000 characters")
     private String body;
 }

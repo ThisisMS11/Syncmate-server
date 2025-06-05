@@ -142,6 +142,7 @@
                     <include>**/*.yaml</include>
                     <include>**/*.xml</include>
                     <include>**/*.properties</include>
+                    <include>**/*.json</include>
                 </includes>
             </resource>
         </resources>

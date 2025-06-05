@@ -20,20 +20,19 @@ public class StorageConfig {
 
     @Bean
     public Storage storage() throws IOException {
-        // Load credentials from classpath or file system
-        InputStream credentialsStream;
-        if (credentialsPath.startsWith("classpath:")) {
-            String resourcePath = credentialsPath.substring("classpath:".length());
-            credentialsStream = new ClassPathResource(resourcePath).getInputStream();
-        } else {
-            credentialsStream = new FileInputStream(credentialsPath);
-        }
-
         GoogleCredentials credentials;
-        if(!credentialsPath.isEmpty()){
-            credentials = GoogleCredentials.fromStream(credentialsStream);
-        }else{
+
+        if (credentialsPath == null || credentialsPath.isBlank()) {
             credentials = GoogleCredentials.getApplicationDefault();
+        } else {
+            InputStream credentialsStream;
+            if (credentialsPath.startsWith("classpath:")) {
+                String resourcePath = credentialsPath.substring("classpath:".length());
+                credentialsStream = new ClassPathResource(resourcePath).getInputStream();
+            } else {
+                credentialsStream = new FileInputStream(credentialsPath);
+            }
+            credentials = GoogleCredentials.fromStream(credentialsStream);
         }
 
         return StorageOptions.newBuilder()

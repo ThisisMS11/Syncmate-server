@@ -2,6 +2,7 @@ package com.SyncMate.SyncMate.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,7 @@ public class EmailTemplate {
     private String subject;
 
     @Column(columnDefinition = "TEXT", nullable = false)
+    @Size(min = 1, max = 50000)
     private String body;
 
     @ManyToOne(fetch = FetchType.LAZY)
