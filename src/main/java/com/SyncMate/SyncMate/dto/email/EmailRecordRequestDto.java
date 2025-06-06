@@ -41,5 +41,6 @@ public class EmailRecordRequestDto {
         private String internshipLink;
         private String resumeLink;
         private String coverLetterLink;
+        private String jobRole;
     }
 }

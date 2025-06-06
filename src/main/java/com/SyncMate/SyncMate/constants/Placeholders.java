@@ -14,4 +14,5 @@ public interface Placeholders {
     String INTERNSHIP_LINK = "{{internshipLink}}";
     String RESUME_LINK = "{{resumeLink}}";
     String COVER_LETTER_LINK = "{{coverLetterLink}}";
+    String JOB_ROLE = "{{jobRole}}";
 }

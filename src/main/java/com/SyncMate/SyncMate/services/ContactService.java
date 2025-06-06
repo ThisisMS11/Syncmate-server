@@ -1,6 +1,7 @@
 package com.SyncMate.SyncMate.services;
 
-import com.SyncMate.SyncMate.dto.ContactDto;
+import com.SyncMate.SyncMate.dto.ContactRequestDto;
+import com.SyncMate.SyncMate.dto.UserContactDto;
 import com.SyncMate.SyncMate.entity.Company;
 import com.SyncMate.SyncMate.entity.Contact;
 import com.SyncMate.SyncMate.entity.User;
@@ -8,6 +9,7 @@ import com.SyncMate.SyncMate.exception.CommonExceptions;
 import com.SyncMate.SyncMate.repository.CompanyRepository;
 import com.SyncMate.SyncMate.repository.ContactRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
@@ -27,21 +29,10 @@ public class ContactService {
     @Autowired
     private UserService userService;
 
-    public Contact saveContact(ContactDto contactInfo) {
-        // Validate the ContactDto
-        log.info("Starting to save contact with ID with mohit: {}", contactInfo.getId());
+    @Autowired
+    private ModelMapper modelMapper;
 
-        // If ID is null, create; otherwise, update
-        if (contactInfo.getId() == null) {
-            log.info("Creating new contact");
-            return createContact(contactInfo);
-        } else {
-            log.info("Updating existing contact with ID: {}", contactInfo.getId());
-            return updateContact(contactInfo);
-        }
-    }
-
-    private Contact createContact(ContactDto contactInfo) {
+    public UserContactDto createContact(ContactRequestDto contactInfo) {
         // Logic for creating a new contact
         log.info("Creating a new contact for email: {}", contactInfo.getEmail());
 
@@ -83,21 +74,23 @@ public class ContactService {
         try {
             contactRepository.save(contact);
             log.info("Successfully created contact with ID something is there: {}", contact.getId());
-            return contact;
+            UserContactDto userContactDto = modelMapper.map(contact, UserContactDto.class);
+            userContactDto.setLogo(contact.getCompany().getLogo());
+            return userContactDto;
         } catch (DataAccessException ex) {
             log.error("Database error while saving contact: {}", ex.getMessage(), ex);
             throw CommonExceptions.operationFailed("Saving contact into database");
         }
     }
 
-    private Contact updateContact(ContactDto contactInfo) {
-        log.info("Updating contact with ID: {}", contactInfo.getId());
+    public UserContactDto updateContact(Long id, ContactRequestDto contactInfo) {
+        log.info("Updating contact with ID: {}", id);
 
         // Fetch existing contact from DB
-        Contact existingContact = contactRepository.findById(contactInfo.getId())
+        Contact existingContact = contactRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.error("Contact with ID {} not found", contactInfo.getId());
-                    return CommonExceptions.resourceNotFound(String.valueOf(contactInfo.getId()));
+                    log.error("Contact with ID {} not found", id);
+                    return CommonExceptions.resourceNotFound(String.valueOf(id));
                 });
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -105,7 +98,7 @@ public class ContactService {
 
         // Check for forbidden access (ensure contact belongs to the user)
         if (!existingContact.getUser().getId().equals(user.getId())) {
-            log.error("Forbidden Access for contact: {}", contactInfo.getId());
+            log.error("Forbidden Access for contact: {}", id);
             throw CommonExceptions.forbiddenAccess();
         }
 
@@ -132,11 +125,15 @@ public class ContactService {
                     });
 
             existingContact.setCompany(company);
+
+
         }
 
         contactRepository.save(existingContact);
         log.info("Successfully updated contact with ID: {}", existingContact.getId());
-        return existingContact;
+        UserContactDto userContactDto = modelMapper.map(existingContact, UserContactDto.class);
+        userContactDto.setLogo(existingContact.getCompany().getLogo());
+        return userContactDto;
     }
 
     public Contact findContactById(Long id) {

@@ -39,7 +39,7 @@ public class CompanyController {
     })
     @PostMapping
     public ResponseEntity<MakeResponseDto<Company>> saveCompany(@Valid @RequestBody CompanyDto companyDto) {
-        Company company = companyService.saveCompany(companyDto);
+        Company company = companyService.createCompany(companyDto);
         MakeResponseDto<Company> finalResponse = new MakeResponseDto<>(true, "Company saved successfully", company);
         return ResponseEntity.ok(finalResponse);
     }
@@ -51,9 +51,9 @@ public class CompanyController {
             @ApiResponse(responseCode = "404", description = "Resource not found", content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    @PutMapping
-    public ResponseEntity<MakeResponseDto<Company>> updateCompany(@RequestBody CompanyDto companyDto) {
-        Company company = companyService.saveCompany(companyDto);
+    @PutMapping("/{id}")
+    public ResponseEntity<MakeResponseDto<Company>> updateCompany(@PathVariable Long id, @RequestBody CompanyDto companyDto) {
+        Company company = companyService.updateCompany(id, companyDto);
         MakeResponseDto<Company> finalResponse = new MakeResponseDto<>(true, "Company updated successfully", company);
         return ResponseEntity.ok(finalResponse);
     }

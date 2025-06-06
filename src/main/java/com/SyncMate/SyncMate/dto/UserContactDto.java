@@ -10,10 +10,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ContactDto {
-
+@NoArgsConstructor
+public class UserContactDto {
     private Long id;
 
     @NotBlank(message = "First Name is required")
@@ -30,7 +29,7 @@ public class ContactDto {
 
     private String linkedIn;
 
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "EmailRecord is required")
     @Email(message = "Invalid email format")
     private String email;
 
@@ -43,8 +42,15 @@ public class ContactDto {
     @NotNull(message = "Experience is required")
     private Integer experience;
 
+    @NotNull(message = "Valid flag is required")
     private Boolean valid;
 
     @NotNull(message = "CompanyID is required")
     private Long companyId;
+
+    @NotNull(message = "Company name is required")
+    private String companyName;
+
+    @NotNull(message = "logo is required")
+    private String logo;
 }

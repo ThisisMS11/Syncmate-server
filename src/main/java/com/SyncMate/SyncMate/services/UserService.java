@@ -1,7 +1,7 @@
 package com.SyncMate.SyncMate.services;
 
 import com.SyncMate.SyncMate.dto.RegisterRequest;
-import com.SyncMate.SyncMate.dto.UserContactsDto;
+import com.SyncMate.SyncMate.dto.UserContactDto;
 import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.enums.Role;
@@ -52,13 +52,13 @@ public class UserService {
         return user;
     }
 
-    public List<UserContactsDto> getUserContacts() {
+    public List<UserContactDto> getUserContacts() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = getUserByEmail(authentication.getName());
 
         log.info("Fetching user contacts");
-        List<UserContactsDto> contacts = user.getContacts().stream()
-                .map(c -> new UserContactsDto(
+        List<UserContactDto> contacts = user.getContacts().stream()
+                .map(c -> new UserContactDto(
                         c.getId(),
                         c.getFirstName(),
                         c.getLastName(),

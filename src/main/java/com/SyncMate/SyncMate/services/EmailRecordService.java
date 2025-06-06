@@ -129,7 +129,8 @@ public class EmailRecordService {
                 .replace(Placeholders.CONTACT_POSITION_TYPE, contact.getPositionType() != null ? contact.getPositionType().toString() : "")
                 .replace(Placeholders.INTERNSHIP_LINK, additionalData != null && additionalData.getInternshipLink() != null ? additionalData.getInternshipLink() : "")
                 .replace(Placeholders.RESUME_LINK, additionalData != null && additionalData.getResumeLink() != null ? additionalData.getResumeLink() : "")
-                .replace(Placeholders.COVER_LETTER_LINK, additionalData != null && additionalData.getCoverLetterLink() != null ? additionalData.getCoverLetterLink() : "");
+                .replace(Placeholders.COVER_LETTER_LINK, additionalData != null && additionalData.getCoverLetterLink() != null ? additionalData.getCoverLetterLink() : "")
+                .replace(Placeholders.JOB_ROLE, additionalData != null && additionalData.getJobRole() != null ? additionalData.getJobRole() : "");
     }
 
 

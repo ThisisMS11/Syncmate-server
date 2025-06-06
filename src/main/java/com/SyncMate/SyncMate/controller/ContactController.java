@@ -1,11 +1,10 @@
 package com.SyncMate.SyncMate.controller;
 
-import com.SyncMate.SyncMate.dto.ContactDto;
-import com.SyncMate.SyncMate.dto.UserContactsDto;
+import com.SyncMate.SyncMate.dto.ContactRequestDto;
+import com.SyncMate.SyncMate.dto.UserContactDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
 import com.SyncMate.SyncMate.dto.responses.contact.ContactResponse;
 import com.SyncMate.SyncMate.dto.responses.contact.UserContactsResponse;
-import com.SyncMate.SyncMate.entity.Contact;
 import com.SyncMate.SyncMate.services.ContactService;
 import com.SyncMate.SyncMate.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,9 +41,9 @@ public class ContactController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error"),
     })
     @PostMapping
-    public ResponseEntity<MakeResponseDto<Contact>> saveContact(@Valid @RequestBody ContactDto contactDto) {
-        Contact contact = contactService.saveContact(contactDto);
-        MakeResponseDto<Contact> finalResponse = new MakeResponseDto<>(true, "Contact saved successfully", contact);
+    public ResponseEntity<MakeResponseDto<UserContactDto>> saveContact(@Valid @RequestBody ContactRequestDto contactDto) {
+        UserContactDto contact = contactService.createContact(contactDto);
+        MakeResponseDto<UserContactDto> finalResponse = new MakeResponseDto<>(true, "Contact saved successfully", contact);
         return ResponseEntity.ok(finalResponse);
     }
 
@@ -57,10 +56,10 @@ public class ContactController {
             @ApiResponse(responseCode = "404", description = "Resource not found"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error"),
     })
-    @PutMapping
-    public ResponseEntity<MakeResponseDto<Contact>> updateContact(@RequestBody ContactDto contactDto) {
-        Contact contact = contactService.saveContact(contactDto);
-        MakeResponseDto<Contact> finalResponse = new MakeResponseDto<>(true, "Contact Updated successfully", contact);
+    @PutMapping("/{id}")
+    public ResponseEntity<MakeResponseDto<UserContactDto>> updateContact(@PathVariable Long id, @RequestBody ContactRequestDto contactDto) {
+        UserContactDto contact = contactService.updateContact(id, contactDto);
+        MakeResponseDto<UserContactDto> finalResponse = new MakeResponseDto<>(true, "Contact Updated successfully", contact);
         return ResponseEntity.ok(finalResponse);
     }
 
@@ -88,9 +87,9 @@ public class ContactController {
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema()))
     })
     @GetMapping("/user-contacts")
-    public ResponseEntity<MakeResponseDto<List<UserContactsDto>>> getUserContacts() {
-        List<UserContactsDto> contacts = userService.getUserContacts();
-        MakeResponseDto<List<UserContactsDto>> finalResponse = new MakeResponseDto<>(true, "User Contacts fetched successfully", contacts);
+    public ResponseEntity<MakeResponseDto<List<UserContactDto>>> getUserContacts() {
+        List<UserContactDto> contacts = userService.getUserContacts();
+        MakeResponseDto<List<UserContactDto>> finalResponse = new MakeResponseDto<>(true, "User Contacts fetched successfully", contacts);
         return ResponseEntity.ok(finalResponse);
     }
 }
