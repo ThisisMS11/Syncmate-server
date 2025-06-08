@@ -32,6 +32,7 @@ public class ContactController {
     @Autowired
     private UserService userService;
 
+
     @Operation(summary = "Save new contact", description = "saving contact")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully saved the contact",

@@ -30,6 +30,6 @@ public class UtilService {
     public boolean checkResourceAuthorization(User resourceUser) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User sessionUser = userService.getUserByEmail(authentication.getName());
-        return sessionUser.getId().equals(resourceUser.getId());
+        return !sessionUser.getId().equals(resourceUser.getId());
     }
 }

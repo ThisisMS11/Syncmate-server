@@ -34,6 +34,9 @@ public class FileService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UtilService utilService;
+
     public File getFileById(Long fileId) {
         log.info("Attempting to fetch file with ID: {}", fileId);
 
@@ -50,7 +53,8 @@ public class FileService {
             throw CommonExceptions.resourceNotFound("File ID: " + fileId);
         });
 
-        if (!file.getUser().equals(user)) {
+        if (utilService.checkResourceAuthorization(file.getUser())) {
+            log.error("Access forbidden for file with id : {}", file.getId());
             throw CommonExceptions.forbiddenAccess();
         }
 
@@ -171,8 +175,8 @@ public class FileService {
                     throw GcsException.fileNotFound("File ID: " + fileId);
                 });
 
-        if (!file.getUser().equals(user)) {
-            log.error("User is not authorized to delete the file");
+        if (utilService.checkResourceAuthorization(file.getUser())) {
+            log.error("Access forbidden for file with id : {}", file.getId());
             throw CommonExceptions.forbiddenAccess();
         }
 

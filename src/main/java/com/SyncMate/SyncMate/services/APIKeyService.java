@@ -79,10 +79,8 @@ public class APIKeyService {
         APIkey apiKey = apiKeyRepository.findById(apiKeyId)
                 .orElseThrow(() -> CommonExceptions.resourceNotFound("API key not found with ID: " + apiKeyId));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.getUserByEmail(authentication.getName());
-        if (!apiKey.getUser().getId().equals(currentUser.getId())) {
-            log.warn("User {} is not authorized to delete API key {}", currentUser.getEmail(), apiKeyId);
+        if (utilService.checkResourceAuthorization(apiKey.getUser())) {
+            log.warn("User is not authorized to delete API key {}", apiKeyId);
             throw CommonExceptions.unauthorizedAccess();
         }
 
@@ -125,6 +123,4 @@ public class APIKeyService {
             throw CommonExceptions.operationFailed("Hashing error: " + e.getMessage());
         }
     }
-
-
 }

@@ -32,6 +32,9 @@ public class ContactService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private UtilService utilService;
+
     public UserContactDto createContact(ContactRequestDto contactInfo) {
         // Logic for creating a new contact
         log.info("Creating a new contact for email: {}", contactInfo.getEmail());
@@ -93,12 +96,8 @@ public class ContactService {
                     return CommonExceptions.resourceNotFound(String.valueOf(id));
                 });
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByEmail(authentication.getName());
-
-        // Check for forbidden access (ensure contact belongs to the user)
-        if (!existingContact.getUser().getId().equals(user.getId())) {
-            log.error("Forbidden Access for contact: {}", id);
+        if (utilService.checkResourceAuthorization(existingContact.getUser())) {
+            log.error("Forbidden Access for contact with id: {}", existingContact.getId());
             throw CommonExceptions.forbiddenAccess();
         }
 
@@ -125,8 +124,6 @@ public class ContactService {
                     });
 
             existingContact.setCompany(company);
-
-
         }
 
         contactRepository.save(existingContact);
@@ -157,10 +154,8 @@ public class ContactService {
             log.error("Contact with id not found : {}", id);
             throw CommonExceptions.resourceNotFound(String.valueOf(id));
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByEmail(authentication.getName());
 
-        if (!contact.getUser().equals(user)) {
+        if (utilService.checkResourceAuthorization(contact.getUser())) {
             log.error("Not Authorized to delete contact with id : {}", id);
             throw CommonExceptions.forbiddenAccess();
         }

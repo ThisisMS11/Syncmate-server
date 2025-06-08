@@ -48,3 +48,7 @@ springdoc:
     tagsSorter: alpha
     groups-order: desc
     display-request-duration: true
+
+
+jwt:
+  secret: ${JWT_SECRET}

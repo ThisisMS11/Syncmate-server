@@ -1,5 +1,6 @@
 package com.SyncMate.SyncMate.controller;
 
+import com.SyncMate.SyncMate.constants.TimeBuckets;
 import com.SyncMate.SyncMate.dto.LoginRequest;
 import com.SyncMate.SyncMate.dto.RegisterRequest;
 import com.SyncMate.SyncMate.dto.TokenResponse;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -98,8 +98,8 @@ public class PublicController {
             String newRefreshToken = jwtService.generateRefreshToken(email);
 
             // Create secure HTTP-only cookies for tokens
-            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, 24 * 60 * 60); // 15 minutes
-            Cookie refreshTokenCookie = createSecureCookie("refresh_token", newRefreshToken, 7 * 24 * 60 * 60); // 7 days
+            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, TimeBuckets.ACCESS_TOKEN_EXPIRY_TIME); // 15 minutes
+            Cookie refreshTokenCookie = createSecureCookie("refresh_token", newRefreshToken, TimeBuckets.REFRESH_TOKEN_EXPIRE_TIME); // 7 days
 
             // Add cookies to response
             response.addCookie(accessTokenCookie);
@@ -130,19 +130,61 @@ public class PublicController {
             @ApiResponse(responseCode = "400", description = "Invalid user request!"),
     })
     @PostMapping("/refresh-token")
-    public ResponseEntity<MakeResponseDto<?>> refreshToken(@RequestBody Map<String, String> refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.get("refresh_token");
+    public ResponseEntity<MakeResponseDto<?>> refreshToken(@RequestBody Map<String, String> refreshTokenRequest,
+                                                           HttpServletRequest request,
+                                                           HttpServletResponse response) {
+        log.info("Starting refreshToken endpoint");
+
+        String refreshToken = null;
+
+        if (refreshTokenRequest != null) {
+            refreshToken = refreshTokenRequest.get("refresh_token");
+            log.info("Refresh token received from request body");
+        }
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            log.info("Refresh token not found in request body, checking cookies");
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Optional<Cookie> authCookie = Arrays.stream(cookies)
+                        .filter(c -> "refresh_token".equals(c.getName()))
+                        .findFirst();
+                if (authCookie.isPresent()) {
+                    refreshToken = authCookie.get().getValue();
+                    log.info("Refresh token retrieved from cookies");
+                } else {
+                    log.error("Refresh token not found in cookies");
+                    throw CommonExceptions.invalidRequest("Refresh Token Not found");
+                }
+            } else {
+                log.error("No cookies found in request");
+                throw CommonExceptions.invalidRequest("Refresh Token Not found");
+            }
+        }
+
+        log.info("Extracting email from refresh token");
         String email = jwtService.extractUsername(refreshToken);
 
         if (email != null && jwtService.validateRefreshToken(refreshToken, userDetailsService.loadUserByUsername(email))) {
+            log.info("Refresh token is valid for user: {}", email);
+
             String newAccessToken = jwtService.generateAccessToken(email);
+            log.info("New access token generated");
+
             TokenResponse tokenResponse = new TokenResponse(newAccessToken, null);
+
+            Cookie accessTokenCookie = createSecureCookie("access_token", newAccessToken, TimeBuckets.ACCESS_TOKEN_EXPIRY_TIME);
+            response.addCookie(accessTokenCookie);
+            log.info("Access token set in secure HTTP-only cookie");
+
             userConfigService.saveUserConfig(tokenResponse, email);
-            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", tokenResponse);
+            log.info("User config saved for user: {}", email);
+
+            MakeResponseDto<?> finalResponse = new MakeResponseDto<>(true, "User registered successfully", null);
             return ResponseEntity.ok(finalResponse);
         }
 
-        log.error("User not found, Throwing UsernameNotFoundException Exception");
+        log.error("Invalid refresh token or user not found for email: {}", email);
         throw CommonExceptions.invalidRequest("Invalid refresh token!");
     }
 
@@ -153,7 +195,7 @@ public class PublicController {
         cookie.setSecure(true);             // Only send over HTTPS (set to false for local development)
         cookie.setPath("/");                // Available for entire application
         cookie.setMaxAge(maxAge);           // Set expiration time
-        cookie.setAttribute("SameSite", "Strict"); // CSRF protection
+        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 }

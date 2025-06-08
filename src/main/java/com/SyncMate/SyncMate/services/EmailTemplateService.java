@@ -67,7 +67,7 @@ public class EmailTemplateService {
                     .orElseThrow(() -> CommonExceptions.resourceNotFound("Email template not found with ID: " + id));
             log.info("Email template found: {}", emailTemplate.getName());
 
-            if (!utilService.checkResourceAuthorization(emailTemplate.getUser())) {
+            if (utilService.checkResourceAuthorization(emailTemplate.getUser())) {
                 log.error("Forbidden Access for emailTemplate: {}", emailTemplate.getId());
                 throw CommonExceptions.forbiddenAccess();
             }
@@ -86,7 +86,7 @@ public class EmailTemplateService {
             EmailTemplate emailTemplate = emailTemplateRepository.findById(id)
                     .orElseThrow(() -> CommonExceptions.resourceNotFound("Email template not found with ID: " + id));
 
-            if (!utilService.checkResourceAuthorization(emailTemplate.getUser())) {
+            if (utilService.checkResourceAuthorization(emailTemplate.getUser())) {
                 log.error("Forbidden Access for emailTemplate: {}", emailTemplate.getId());
                 throw CommonExceptions.forbiddenAccess();
             }
@@ -111,7 +111,7 @@ public class EmailTemplateService {
             EmailTemplate emailTemplate = emailTemplateRepository.findById(id)
                     .orElseThrow(() -> CommonExceptions.resourceNotFound("Email template not found with ID: " + id));
 
-            if (!utilService.checkResourceAuthorization(emailTemplate.getUser())) {
+            if (utilService.checkResourceAuthorization(emailTemplate.getUser())) {
                 log.error("Forbidden Access for emailTemplate: {}", emailTemplate.getId());
                 throw CommonExceptions.forbiddenAccess();
             }
