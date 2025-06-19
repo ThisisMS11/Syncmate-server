@@ -196,6 +196,7 @@ public class PublicController {
         cookie.setPath("/");                // Available for entire application
         cookie.setMaxAge(maxAge);           // Set expiration time
         cookie.setAttribute("SameSite", "None");
+        cookie.setDomain("mohitsaini.in");
         return cookie;
     }
 }
