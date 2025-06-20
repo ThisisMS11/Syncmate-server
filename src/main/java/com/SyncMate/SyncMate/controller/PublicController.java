@@ -11,10 +11,7 @@ import com.SyncMate.SyncMate.dto.responses.user.UserInfoResponse;
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.enums.Role;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
-import com.SyncMate.SyncMate.services.JwtService;
-import com.SyncMate.SyncMate.services.UserConfigService;
-import com.SyncMate.SyncMate.services.UserDetailsServiceImpl;
-import com.SyncMate.SyncMate.services.UserService;
+import com.SyncMate.SyncMate.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +23,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.swing.text.StyledEditorKit;
 import java.util.*;
 
 @Slf4j
@@ -58,6 +58,10 @@ public class PublicController {
 
     @Autowired
     private UserConfigService userConfigService;
+
+    @Autowired
+    private UtilService utilService;
+
 
     @Operation(summary = "Register User", description = "Register a new user")
     @ApiResponses(value = {
@@ -192,11 +196,12 @@ public class PublicController {
     private Cookie createSecureCookie(String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);           // Prevents XSS attacks
-        cookie.setSecure(true);             // Only send over HTTPS (set to false for local development)
         cookie.setPath("/");                // Available for entire application
         cookie.setMaxAge(maxAge);           // Set expiration time
-        cookie.setAttribute("SameSite", "None");
-        cookie.setDomain("mohitsaini.in");
+        boolean isProd = utilService.isProd();
+        cookie.setSecure(isProd);             // Only send over HTTPS (set to false for local development)
+        cookie.setAttribute("SameSite", isProd ? "None" : "Lax");
+        cookie.setDomain(isProd ? "mohitsaini.in" : "localhost");
         return cookie;
     }
 }

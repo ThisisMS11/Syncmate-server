@@ -25,7 +25,6 @@ public class ContactRequestDto {
     @NotNull(message = "Gender is required")
     private Gender gender;
 
-    @NotBlank(message = "Mobile is required")
     private String mobile;
 
     private String linkedIn;
