@@ -45,12 +45,9 @@ public class FileService {
             throw CommonExceptions.invalidRequest("File ID must not be null");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByEmail(authentication.getName());
-
         File file = fileRepository.findById(fileId).orElseThrow(() -> {
             log.warn("No file found in DB with ID: {}", fileId);
-            throw CommonExceptions.resourceNotFound("File ID: " + fileId);
+             return CommonExceptions.resourceNotFound("File ID: " + fileId);
         });
 
         if (utilService.checkResourceAuthorization(file.getUser())) {
@@ -84,10 +81,13 @@ public class FileService {
         try {
             log.info("Uploading file to Cloudinary: {}", originalName);
 
+            // Make sure filename doesn't have spaces
+            String sanitizedFileName = originalName.replaceAll("\\s+", "_");
+
             Map<String, Object> uploadOptions = ObjectUtils.asMap(
                     "folder", uploadFolder,
-                    "resource_type", "auto", // auto-detect file type
-                    "public_id", System.currentTimeMillis() + "_" + originalName
+                    "resource_type", "auto",
+                    "public_id", System.currentTimeMillis() + "_" + sanitizedFileName
             );
 
             Map<String, Object> uploadResult = cloudinary.uploader()
@@ -95,13 +95,22 @@ public class FileService {
 
             log.info("File uploaded successfully to Cloudinary: {}", uploadResult);
 
+            String publicId = (String) uploadResult.get("public_id");
+            String format = (String) uploadResult.get("format");
+
+            // Build permanent URL (instead of relying on returned "url")
+            String secureUrl = cloudinary.url()
+                    .secure(true)
+                    .resourceType("auto")
+                    .generate(publicId + "." + format);
+
             // Build entity
             File savedFile = new File();
             savedFile.setOriginalFilename(originalName);
-            savedFile.setPublicId((String) uploadResult.get("public_id"));
-            savedFile.setUrl((String) uploadResult.get("url"));
-            savedFile.setSecureUrl((String) uploadResult.get("secure_url"));
-            savedFile.setFormat((String) uploadResult.get("format"));
+            savedFile.setPublicId(publicId);
+            savedFile.setUrl(secureUrl);
+            savedFile.setSecureUrl(secureUrl);
+            savedFile.setFormat(format);
             savedFile.setBytes(((Number) uploadResult.get("bytes")).longValue());
             savedFile.setFileType(FileType.detectFromContentType(multipartFile.getContentType()));
             savedFile.setUser(user);
@@ -154,7 +163,7 @@ public class FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> {
                     log.warn("No file found in DB with ID: {}", fileId);
-                    throw CommonExceptions.resourceNotFound("File ID: " + fileId);
+                    return CommonExceptions.resourceNotFound("File ID: " + fileId);
                 });
 
         if (utilService.checkResourceAuthorization(file.getUser())) {
