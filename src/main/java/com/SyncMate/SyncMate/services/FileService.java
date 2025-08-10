@@ -4,9 +4,9 @@ import com.SyncMate.SyncMate.entity.File;
 import com.SyncMate.SyncMate.entity.User;
 import com.SyncMate.SyncMate.enums.FileType;
 import com.SyncMate.SyncMate.exception.CommonExceptions;
-import com.SyncMate.SyncMate.exception.GcsException;
 import com.SyncMate.SyncMate.repository.FileRepository;
-import com.google.cloud.storage.*;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,17 +16,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class FileService {
 
     @Autowired
-    private Storage storage;
-
-    @Value("${gcp.storage.bucket-name}")
-    private String bucketName;
+    private Cloudinary cloudinary; // configured as a @Bean
 
     @Autowired
     private FileRepository fileRepository;
@@ -36,6 +33,9 @@ public class FileService {
 
     @Autowired
     private UtilService utilService;
+
+    @Value("${cloudinary.folder:syncmate}") // optional folder name
+    private String uploadFolder;
 
     public File getFileById(Long fileId) {
         log.info("Attempting to fetch file with ID: {}", fileId);
@@ -61,16 +61,16 @@ public class FileService {
         return file;
     }
 
-    // Upload a file to GCS
-    public File uploadFile(MultipartFile file, User user) {
+    // Upload a file to Cloudinary
+    public File uploadFile(MultipartFile multipartFile, User user) {
         log.info("Received file upload request");
 
-        if (file == null || file.isEmpty()) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
             log.warn("Uploaded file is null or empty");
             throw CommonExceptions.invalidRequest("Uploaded file is empty or null");
         }
 
-        String originalName = file.getOriginalFilename();
+        String originalName = multipartFile.getOriginalFilename();
         if (originalName == null) {
             log.warn("Uploaded file has no original filename");
             throw CommonExceptions.invalidRequest("File must have a valid name");
@@ -81,51 +81,43 @@ public class FileService {
             user = userService.getUserByEmail(authentication.getName());
         }
 
-        String gcsFilename = UUID.randomUUID() + "_" + originalName;
-        log.info("Generated unique filename: {}", gcsFilename);
-
-        BlobId blobId = BlobId.of(bucketName, gcsFilename);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-                .setContentType(file.getContentType())
-                .build();
-
         try {
-            Blob blob = storage.create(blobInfo, file.getBytes());
-            blob.createAcl(Acl.of(Acl.User.ofAllUsers(), Acl.Role.READER));
-            log.info("File uploaded successfully to bucket: {}, file: {}", bucketName, gcsFilename);
-        } catch (IOException e) {
-            log.error("Failed to upload file to GCS", e);
-            throw GcsException.uploadFailed(gcsFilename);
-        }
+            log.info("Uploading file to Cloudinary: {}", originalName);
 
-        String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, gcsFilename);
+            Map<String, Object> uploadOptions = ObjectUtils.asMap(
+                    "folder", uploadFolder,
+                    "resource_type", "auto", // auto-detect file type
+                    "public_id", System.currentTimeMillis() + "_" + originalName
+            );
 
-        // Build entity
-        try {
+            Map<String, Object> uploadResult = cloudinary.uploader()
+                    .upload(multipartFile.getBytes(), uploadOptions);
+
+            log.info("File uploaded successfully to Cloudinary: {}", uploadResult);
+
+            // Build entity
             File savedFile = new File();
             savedFile.setOriginalFilename(originalName);
-            savedFile.setGcsFilename(gcsFilename);
-            savedFile.setPublicUrl(publicUrl);
-            savedFile.setContentType(file.getContentType());
-            savedFile.setSize(file.getSize());
-            savedFile.setBucketName(bucketName);
-            savedFile.setFileType(FileType.detectFromContentType(file.getContentType()));
+            savedFile.setPublicId((String) uploadResult.get("public_id"));
+            savedFile.setUrl((String) uploadResult.get("url"));
+            savedFile.setSecureUrl((String) uploadResult.get("secure_url"));
+            savedFile.setFormat((String) uploadResult.get("format"));
+            savedFile.setBytes(((Number) uploadResult.get("bytes")).longValue());
+            savedFile.setFileType(FileType.detectFromContentType(multipartFile.getContentType()));
             savedFile.setUser(user);
 
             log.info("Saving file into DB");
             return fileRepository.save(savedFile);
 
-        } catch (Exception e) {
-            log.error("Error saving file into DB : {}", e.getMessage());
-            storage.delete(bucketName, gcsFilename);
-            throw CommonExceptions.operationFailed("Error saving file into DB");
+        } catch (IOException e) {
+            log.error("Failed to upload file to Cloudinary", e);
+            throw CommonExceptions.operationFailed("Error uploading file to Cloudinary");
         }
     }
 
-
-    // Download a file from GCS using file ID
-    public byte[] downloadFile(Long fileId) {
-        log.info("Attempting to download file with ID: {}", fileId);
+    // Download file is not directly possible from Cloudinary in byte[] easily — return URL
+    public String getDownloadUrl(Long fileId) {
+        log.info("Attempting to get download URL for file with ID: {}", fileId);
 
         if (fileId == null) {
             log.warn("Null fileId provided for download");
@@ -138,24 +130,14 @@ public class FileService {
                     throw CommonExceptions.resourceNotFound("File ID: " + fileId);
                 });
 
-        String gcsFilename = file.getGcsFilename();
-        String bucket = file.getBucketName() != null ? file.getBucketName() : bucketName;
-
-        log.info("Fetching file from GCS: bucket={}, filename={}", bucket, gcsFilename);
-
-        Blob blob = storage.get(bucket, gcsFilename);
-        if (blob == null || !blob.exists()) {
-            log.warn("File not found in GCS: {}", gcsFilename);
-            throw CommonExceptions.resourceNotFound(gcsFilename);
+        if (file.getSecureUrl() == null) {
+            throw CommonExceptions.resourceNotFound("No URL available for file: " + fileId);
         }
 
-        byte[] content = blob.getContent();
-        log.info("File downloaded successfully: {}", gcsFilename);
-        return content;
+        return file.getSecureUrl();
     }
 
-
-    // Delete a file from GCS and database
+    // Delete a file from Cloudinary and database
     public boolean deleteFile(Long fileId, User user) {
         log.info("Attempting to delete file with ID: {}", fileId);
 
@@ -172,7 +154,7 @@ public class FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> {
                     log.warn("No file found in DB with ID: {}", fileId);
-                    throw GcsException.fileNotFound("File ID: " + fileId);
+                    throw CommonExceptions.resourceNotFound("File ID: " + fileId);
                 });
 
         if (utilService.checkResourceAuthorization(file.getUser())) {
@@ -180,27 +162,24 @@ public class FileService {
             throw CommonExceptions.forbiddenAccess();
         }
 
-        String gcsFilename = file.getGcsFilename();
-        String bucket = file.getBucketName() != null ? file.getBucketName() : bucketName;
-
-        log.info("Deleting file from GCS: bucket={}, filename={}", bucket, gcsFilename);
-
         try {
-            boolean deletedFromGcs = storage.delete(bucket, gcsFilename);
-            if (!deletedFromGcs) {
-                log.warn("File not found in GCS: {}", gcsFilename);
-                throw GcsException.fileNotFound(gcsFilename);
-            }
+            log.info("Deleting file from Cloudinary: {}", file.getPublicId());
 
-            log.info("File deleted from GCS successfully: {}", gcsFilename);
+            Map<String, Object> result = cloudinary.uploader()
+                    .destroy(file.getPublicId(), ObjectUtils.emptyMap());
+
+            if (!"ok".equals(result.get("result"))) {
+                log.warn("File not found in Cloudinary: {}", file.getPublicId());
+                throw CommonExceptions.resourceNotFound(file.getPublicId());
+            }
 
             fileRepository.deleteById(fileId);
             log.info("File metadata deleted from DB for ID: {}", fileId);
 
             return true;
         } catch (Exception e) {
-            log.error("Failed to delete file: {}", gcsFilename, e);
-            throw GcsException.deleteFailed(gcsFilename);
+            log.error("Failed to delete file: {}", file.getPublicId(), e);
+            throw CommonExceptions.operationFailed("Error deleting file from Cloudinary");
         }
     }
 

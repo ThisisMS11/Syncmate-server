@@ -1,7 +1,6 @@
 package com.SyncMate.SyncMate;
+
 import com.SyncMate.SyncMate.controller.PublicController;
-import com.SyncMate.SyncMate.services.UserService;
-import org.junit.jupiter.api.Test;
 import com.SyncMate.SyncMate.dto.LoginRequest;
 import com.SyncMate.SyncMate.dto.RegisterRequest;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
@@ -12,17 +11,22 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class PublicTests {

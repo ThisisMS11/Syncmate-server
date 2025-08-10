@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"id", "originalFilename", "gcsFilename"})
+@EqualsAndHashCode(of = {"id", "originalFilename", "publicId"})
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,16 +24,15 @@ public class File {
 
     private String originalFilename;
 
-    // Unique name saved in GCS (e.g., UUID_originalFilename)
-    private String gcsFilename;
+    private String publicId;
 
-    private String publicUrl;
+    private String url;
 
-    private String contentType;
+    private String secureUrl;
 
-    private Long size;
+    private String format;
 
-    private String bucketName;
+    private Long bytes;
 
     @Enumerated(EnumType.STRING)
     private FileType fileType = FileType.UNKNOWN;
@@ -59,11 +58,11 @@ public class File {
         return "File{" +
                 "id=" + id +
                 ", originalFilename='" + originalFilename + '\'' +
-                ", gcsFilename='" + gcsFilename + '\'' +
-                ", publicUrl='" + publicUrl + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", size=" + size +
-                ", bucketName='" + bucketName + '\'' +
+                ", publicId='" + publicId + '\'' +
+                ", url='" + url + '\'' +
+                ", secureUrl='" + secureUrl + '\'' +
+                ", format='" + format + '\'' +
+                ", bytes=" + bytes +
                 ", fileType=" + fileType +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

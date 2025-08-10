@@ -59,11 +59,10 @@ public class StorageController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/download/{fileId}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
-        byte[] fileData = fileService.downloadFile(fileId);
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/octet-stream")
-                .body(fileData);
+    public ResponseEntity<MakeResponseDto<String>> downloadFile(@PathVariable Long fileId) {
+        String fileDownloadUrl = fileService.getDownloadUrl(fileId);
+        MakeResponseDto<String> finalResponse = new MakeResponseDto<>(true, "Download file using the given url", fileDownloadUrl);
+        return ResponseEntity.ok(finalResponse);
     }
 
 
