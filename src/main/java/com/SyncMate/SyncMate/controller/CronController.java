@@ -1,11 +1,8 @@
 package com.SyncMate.SyncMate.controller;
 
-import com.SyncMate.SyncMate.dto.UserContactDto;
 import com.SyncMate.SyncMate.dto.common.MakeResponseDto;
-import com.SyncMate.SyncMate.dto.responses.contact.UserContactsResponse;
 import com.SyncMate.SyncMate.services.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Slf4j
 @RestController

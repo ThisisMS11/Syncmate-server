@@ -6,7 +6,6 @@ import com.SyncMate.SyncMate.repository.EmailRecordRepository;
 import com.SyncMate.SyncMate.services.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class EmailScheduler {
     @Autowired
     private EmailService emailService;
 
-//    @Scheduled(cron = "0 * * * * *")
+    //    @Scheduled(cron = "0 * * * * *")
     public void SendScheduledEmails() {
         log.info("Starting send email scheduler...");
 

@@ -47,7 +47,7 @@ public class FileService {
 
         File file = fileRepository.findById(fileId).orElseThrow(() -> {
             log.warn("No file found in DB with ID: {}", fileId);
-             return CommonExceptions.resourceNotFound("File ID: " + fileId);
+            return CommonExceptions.resourceNotFound("File ID: " + fileId);
         });
 
         if (utilService.checkResourceAuthorization(file.getUser())) {
