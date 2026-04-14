@@ -161,6 +161,7 @@
                     <include>**/*.xml</include>
                     <include>**/*.properties</include>
                     <include>**/*.json</include>
+                    <include>**/*.sql</include>
                 </includes>
             </resource>
         </resources>

@@ -39,6 +39,9 @@ public class Contact {
     @Column(nullable = true)
     private String linkedIn;
 
+    @Column(nullable = true, length = 2048)
+    private String profileImageUrl;
+
     @Column(nullable = false)
     private String email;
 

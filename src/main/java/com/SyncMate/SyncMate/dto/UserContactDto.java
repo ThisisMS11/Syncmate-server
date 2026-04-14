@@ -29,6 +29,8 @@ public class UserContactDto {
 
     private String linkedIn;
 
+    private String profileImageUrl;
+
     @NotBlank(message = "EmailRecord is required")
     @Email(message = "Invalid email format")
     private String email;
@@ -53,4 +55,6 @@ public class UserContactDto {
 
     @NotNull(message = "logo is required")
     private String logo;
+
+    private String companyDomain;
 }

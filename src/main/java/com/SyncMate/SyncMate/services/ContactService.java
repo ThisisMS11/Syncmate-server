@@ -58,6 +58,7 @@ public class ContactService {
         contact.setGender(contactInfo.getGender());
         contact.setMobile(contactInfo.getMobile());
         contact.setLinkedIn(contactInfo.getLinkedIn());
+        contact.setProfileImageUrl(contactInfo.getProfileImageUrl());
         contact.setEmail(contactInfo.getEmail());
         contact.setPosition(contactInfo.getPosition());
         contact.setPositionType(contactInfo.getPositionType());
@@ -79,6 +80,7 @@ public class ContactService {
             log.info("Successfully created contact with ID something is there: {}", contact.getId());
             UserContactDto userContactDto = modelMapper.map(contact, UserContactDto.class);
             userContactDto.setLogo(contact.getCompany().getLogo());
+            userContactDto.setCompanyDomain(contact.getCompany().getDomain());
             return userContactDto;
         } catch (DataAccessException ex) {
             log.error("Database error while saving contact: {}", ex.getMessage(), ex);
@@ -107,6 +109,7 @@ public class ContactService {
         existingContact.setGender(contactInfo.getGender());
         existingContact.setMobile(contactInfo.getMobile());
         existingContact.setLinkedIn(contactInfo.getLinkedIn());
+        existingContact.setProfileImageUrl(contactInfo.getProfileImageUrl());
         existingContact.setEmail(contactInfo.getEmail());
         existingContact.setPosition(contactInfo.getPosition());
         existingContact.setPositionType(contactInfo.getPositionType());
@@ -130,6 +133,7 @@ public class ContactService {
         log.info("Successfully updated contact with ID: {}", existingContact.getId());
         UserContactDto userContactDto = modelMapper.map(existingContact, UserContactDto.class);
         userContactDto.setLogo(existingContact.getCompany().getLogo());
+        userContactDto.setCompanyDomain(existingContact.getCompany().getDomain());
         return userContactDto;
     }
 

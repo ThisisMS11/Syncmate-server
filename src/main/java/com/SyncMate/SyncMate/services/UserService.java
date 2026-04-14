@@ -65,6 +65,7 @@ public class UserService {
                         c.getGender(),
                         c.getMobile(),
                         c.getLinkedIn(),
+                        c.getProfileImageUrl(),
                         c.getEmail(),
                         c.getPosition(),
                         c.getPositionType(),
@@ -72,7 +73,8 @@ public class UserService {
                         c.getValid(),
                         c.getCompany().getId(),
                         c.getCompany().getName(),
-                        c.getCompany().getLogo()
+                        c.getCompany().getLogo(),
+                        c.getCompany().getDomain()
                 ))
                 .collect(Collectors.toList());
 

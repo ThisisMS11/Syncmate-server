@@ -29,6 +29,8 @@ public class ContactRequestDto {
 
     private String linkedIn;
 
+    private String profileImageUrl;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
