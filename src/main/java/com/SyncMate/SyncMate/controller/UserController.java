@@ -80,7 +80,7 @@ public class UserController {
         cookie.setSecure(isProd);
         cookie.setPath("/");
         cookie.setAttribute("SameSite", isProd ? "None" : "Lax");
-        cookie.setDomain(isProd ? "mohitsaini.in" : "localhost");// match original
+        cookie.setDomain(isProd ? "mohitsaini.me" : "localhost");
         return cookie;
     }
 }

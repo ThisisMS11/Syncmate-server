@@ -198,7 +198,7 @@ public class PublicController {
         boolean isProd = utilService.isProd();
         cookie.setSecure(isProd);             // Only send over HTTPS (set to false for local development)
         cookie.setAttribute("SameSite", isProd ? "None" : "Lax");
-        cookie.setDomain(isProd ? "mohitsaini.in" : "localhost");
+        cookie.setDomain(isProd ? "mohitsaini.me" : "localhost");
         return cookie;
     }
 }
