@@ -12,7 +12,7 @@ public class CorsConfig implements CorsConfigurationSource {
     @Override
     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://127.0.0.1:3000", "https://syncmate.mohitsaini.in", "chrome-extension://*"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://127.0.0.1:3000", "https://syncmate.mohitsaini.me", "chrome-extension://*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
